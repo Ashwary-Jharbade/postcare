@@ -1,5 +1,6 @@
-const CACHE_NAME = 'postcare-shell-v3'
-const APP_SHELL = ['/', '/manifest.webmanifest', '/icons/postcare-icon.svg']
+const CACHE_NAME = 'postcare-shell-v4'
+const BASE_PATH = self.location.pathname.replace(/sw\.js$/, '')
+const APP_SHELL = [BASE_PATH, BASE_PATH + 'manifest.webmanifest', BASE_PATH + 'icons/postcare-icon.svg']
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -45,7 +46,7 @@ self.addEventListener('fetch', (event) => {
 
           return networkResponse
         })
-        .catch(() => caches.match('/'))
+        .catch(() => caches.match(BASE_PATH))
     }),
   )
 })

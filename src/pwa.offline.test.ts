@@ -17,7 +17,7 @@ describe('offline pwa assets', () => {
     }
 
     expect(manifest.name).toBe('Postcare')
-    expect(manifest.start_url).toBe('/')
+    expect(manifest.start_url).toBe('./')
     expect(manifest.display).toBe('standalone')
     expect(manifest.icons.length).toBeGreaterThan(0)
   })
@@ -27,6 +27,6 @@ describe('offline pwa assets', () => {
     const content = readFileSync(serviceWorkerPath, 'utf-8')
 
     expect(content).toContain("cache.addAll(APP_SHELL)")
-    expect(content).toContain("caches.match('/')")
+    expect(content).toContain('caches.match(BASE_PATH)')
   })
 })

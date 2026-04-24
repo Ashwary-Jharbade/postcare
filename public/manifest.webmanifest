@@ -2,19 +2,19 @@
   "name": "Postcare",
   "short_name": "Postcare",
   "description": "A local-first API client PWA with secure request workflows.",
-  "start_url": "/",
+  "start_url": "./",
   "display": "standalone",
   "background_color": "#08141b",
   "theme_color": "#08141b",
   "icons": [
     {
-      "src": "/icons/postcare-icon.svg",
+      "src": "./icons/postcare-icon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any"
     },
     {
-      "src": "/icons/postcare-icon.svg",
+      "src": "./icons/postcare-icon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "maskable"
