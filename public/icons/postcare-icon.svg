@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title">
+  <title>Postcare App Icon</title>
+  <defs>
+    <linearGradient id="bg" x1="0%" x2="100%" y1="0%" y2="100%">
+      <stop offset="0%" stop-color="#0f2029" />
+      <stop offset="100%" stop-color="#173847" />
+    </linearGradient>
+    <linearGradient id="accent" x1="0%" x2="100%" y1="0%" y2="100%">
+      <stop offset="0%" stop-color="#7ad3c4" />
+      <stop offset="100%" stop-color="#34a3b6" />
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#bg)" />
+  <path
+    d="M126 166h260c18 0 32 14 32 32v116c0 18-14 32-32 32H126c-18 0-32-14-32-32V198c0-18 14-32 32-32Z"
+    fill="none"
+    stroke="url(#accent)"
+    stroke-linejoin="round"
+    stroke-width="28"
+  />
+  <path
+    d="M166 216h94M166 256h180M166 296h128"
+    fill="none"
+    stroke="#d7edf0"
+    stroke-linecap="round"
+    stroke-width="26"
+  />
+  <circle cx="358" cy="216" r="22" fill="#7ad3c4" />
+</svg>
