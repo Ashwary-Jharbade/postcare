@@ -28,6 +28,13 @@ import './AiAssistPanel.css'
 const HTTP_METHODS: HttpMethod[] = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS']
 const BODY_MODES: RequestBodyMode[] = ['none', 'json', 'text', 'form-data', 'raw']
 const AUTH_TYPES: AuthType[] = ['none', 'apiKey', 'bearer', 'basic', 'oauth2']
+type ComposerTab = 'queryParams' | 'header' | 'auth' | 'body'
+const COMPOSER_TABS: Array<{ id: ComposerTab; label: string }> = [
+  { id: 'queryParams', label: 'Query params' },
+  { id: 'header', label: 'Header' },
+  { id: 'auth', label: 'Auth' },
+  { id: 'body', label: 'Body' },
+]
 const SIMULATION_MODES: Array<{ label: string; value: SimulationMode }> = [
   { label: 'Off', value: 'off' },
   { label: 'Network error', value: 'network-error' },
@@ -51,6 +58,7 @@ export function RequestComposer({ requestId, environment }: RequestComposerProps
   const [simulationDelayMs, setSimulationDelayMs] = useState('0')
   const [simulationStatusCode, setSimulationStatusCode] = useState('500')
   const [jsonFormatError, setJsonFormatError] = useState<string | null>(null)
+  const [activeComposerTab, setActiveComposerTab] = useState<ComposerTab>('queryParams')
 
   function updateFieldRows(
     rows: KeyValueEntry[],
@@ -570,70 +578,122 @@ export function RequestComposer({ requestId, environment }: RequestComposerProps
         </label>
       </div>
 
-      <div className="composer-section">
-        <div className="section-header">
-          <h3>Query params</h3>
-          <button className="ghost-button" onClick={() => composer.addQueryParamRow()} type="button">
-            Add param
-          </button>
-        </div>
-        {renderFieldTable('queryParams', request.queryParams)}
-      </div>
+      <div className="composer-section composer-tabs-section">
+        <div className="composer-tabs" role="tablist" aria-label="Request sections">
+          {COMPOSER_TABS.map((tab) => {
+            const tabPanelId = `composer-tab-panel-${tab.id}`
+            const isActive = activeComposerTab === tab.id
 
-      <div className="composer-section">
-        <div className="section-header">
-          <h3>Headers</h3>
-          <button className="ghost-button" onClick={() => composer.addHeaderRow()} type="button">
-            Add header
-          </button>
+            return (
+              <button
+                key={tab.id}
+                className={`composer-tab ${isActive ? 'composer-tab-active' : ''}`}
+                role="tab"
+                type="button"
+                id={`composer-tab-${tab.id}`}
+                aria-controls={tabPanelId}
+                aria-selected={isActive}
+                onClick={() => setActiveComposerTab(tab.id)}
+              >
+                {tab.label}
+              </button>
+            )
+          })}
         </div>
-        {renderFieldTable('headers', request.headers)}
-      </div>
 
-      <div className="composer-section">
-        <div className="section-header">
-          <h3>Auth</h3>
-        </div>
-        <div className="composer-grid">
-          <label className="stack-field">
-            <span>Auth type</span>
-            <select
-              className="input"
-              onChange={(event) => setAuthType(event.target.value as AuthType)}
-              value={request.auth.type}
-            >
-              {AUTH_TYPES.map((authType) => (
-                <option key={authType} value={authType}>
-                  {authType}
-                </option>
-              ))}
-            </select>
-          </label>
-        </div>
-        {renderAuthFields()}
-      </div>
+        {activeComposerTab === 'queryParams' && (
+          <div
+            className="composer-tab-panel"
+            id="composer-tab-panel-queryParams"
+            role="tabpanel"
+            aria-labelledby="composer-tab-queryParams"
+          >
+            <div className="section-header">
+              <h3>Query params</h3>
+              <button className="ghost-button" onClick={() => composer.addQueryParamRow()} type="button">
+                Add param
+              </button>
+            </div>
+            {renderFieldTable('queryParams', request.queryParams)}
+          </div>
+        )}
 
-      <div className="composer-section">
-        <div className="section-header">
-          <h3>Body</h3>
-        </div>
-        <div className="composer-grid">
-          <label className="stack-field">
-            <span>Body mode</span>
-            <select
-              className="input"
-              onChange={(event) => handleBodyModeChange(event.target.value as RequestBodyMode)}
-              value={request.body.mode}
-            >
-              {BODY_MODES.map((mode) => (
-                <option key={mode} value={mode}>
-                  {mode}
-                </option>
-              ))}
-            </select>
-          </label>
-        </div>
-        {renderBodyEditor()}
+        {activeComposerTab === 'header' && (
+          <div
+            className="composer-tab-panel"
+            id="composer-tab-panel-header"
+            role="tabpanel"
+            aria-labelledby="composer-tab-header"
+          >
+            <div className="section-header">
+              <h3>Header</h3>
+              <button className="ghost-button" onClick={() => composer.addHeaderRow()} type="button">
+                Add header
+              </button>
+            </div>
+            {renderFieldTable('headers', request.headers)}
+          </div>
+        )}
+
+        {activeComposerTab === 'auth' && (
+          <div
+            className="composer-tab-panel"
+            id="composer-tab-panel-auth"
+            role="tabpanel"
+            aria-labelledby="composer-tab-auth"
+          >
+            <div className="section-header">
+              <h3>Auth</h3>
+            </div>
+            <div className="composer-grid">
+              <label className="stack-field">
+                <span>Auth type</span>
+                <select
+                  className="input"
+                  onChange={(event) => setAuthType(event.target.value as AuthType)}
+                  value={request.auth.type}
+                >
+                  {AUTH_TYPES.map((authType) => (
+                    <option key={authType} value={authType}>
+                      {authType}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+            {renderAuthFields()}
+          </div>
+        )}
+
+        {activeComposerTab === 'body' && (
+          <div
+            className="composer-tab-panel"
+            id="composer-tab-panel-body"
+            role="tabpanel"
+            aria-labelledby="composer-tab-body"
+          >
+            <div className="section-header">
+              <h3>Body</h3>
+            </div>
+            <div className="composer-grid">
+              <label className="stack-field">
+                <span>Body mode</span>
+                <select
+                  className="input"
+                  onChange={(event) => handleBodyModeChange(event.target.value as RequestBodyMode)}
+                  value={request.body.mode}
+                >
+                  {BODY_MODES.map((mode) => (
+                    <option key={mode} value={mode}>
+                      {mode}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+            {renderBodyEditor()}
+          </div>
+        )}
       </div>
 
       {environment && (

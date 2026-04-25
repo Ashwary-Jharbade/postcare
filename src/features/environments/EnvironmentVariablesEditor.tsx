@@ -161,66 +161,77 @@ export function EnvironmentVariablesEditor({ environmentId }: EnvironmentVariabl
         <p className="empty-state">No variables in this environment. Click + to add one.</p>
       ) : null}
 
-      <ul className="variables-list">
-        {variables.map((variable) => (
-          <li key={variable.id} className="variable-item">
-            <div className="variable-row">
-              <input
-                type="checkbox"
-                checked={variable.enabled}
-                onChange={(e) =>
-                  handleUpdateVariable(
-                    variable.id,
-                    variable.key,
-                    variable.value,
-                    e.target.checked,
-                    variable.secret ?? false,
-                  )
-                }
-                title="Enable/disable variable"
-              />
-              <input
-                type="text"
-                className="variable-key"
-                value={variable.key}
-                onChange={(e) =>
-                  handleUpdateVariable(
-                    variable.id,
-                    e.target.value,
-                    variable.value,
-                    variable.enabled,
-                    variable.secret ?? false,
-                  )
-                }
-                placeholder="Key"
-              />
-              <input
-                type={variable.secret ? 'password' : 'text'}
-                className="variable-value"
-                value={variable.value}
-                onChange={(e) =>
-                  handleUpdateVariable(
-                    variable.id,
-                    variable.key,
-                    e.target.value,
-                    variable.enabled,
-                    variable.secret ?? false,
-                  )
-                }
-                placeholder="Value"
-              />
-              {variable.secret && <span className="secret-badge">🔒</span>}
-              <button
-                className="btn-icon-sm btn-danger"
-                onClick={() => handleRemoveVariable(variable.id)}
-                title="Delete"
-              >
-                ✕
-              </button>
-            </div>
-          </li>
-        ))}
-      </ul>
+      <div className="variables-list-section">
+        {variables.length > 0 && (
+          <div className="variables-list-header" aria-hidden="true">
+            <span className="variables-list-header-key">Key</span>
+            <span className="variables-list-header-value">Value</span>
+          </div>
+        )}
+
+        <ul className="variables-list">
+          {variables.map((variable) => (
+            <li key={variable.id} className="variable-item">
+              <div className="variable-row">
+                <input
+                  type="checkbox"
+                  checked={variable.enabled}
+                  onChange={(e) =>
+                    handleUpdateVariable(
+                      variable.id,
+                      variable.key,
+                      variable.value,
+                      e.target.checked,
+                      variable.secret ?? false,
+                    )
+                  }
+                  title="Enable/disable variable"
+                />
+                <input
+                  type="text"
+                  className="variable-key"
+                  value={variable.key}
+                  onChange={(e) =>
+                    handleUpdateVariable(
+                      variable.id,
+                      e.target.value,
+                      variable.value,
+                      variable.enabled,
+                      variable.secret ?? false,
+                    )
+                  }
+                  placeholder="Key"
+                />
+                <div className="variable-value-group">
+                  {variable.secret && <span className="secret-badge">🔒</span>}
+                  <input
+                    type={variable.secret ? 'password' : 'text'}
+                    className="variable-value"
+                    value={variable.value}
+                    onChange={(e) =>
+                      handleUpdateVariable(
+                        variable.id,
+                        variable.key,
+                        e.target.value,
+                        variable.enabled,
+                        variable.secret ?? false,
+                      )
+                    }
+                    placeholder="Value"
+                  />
+                </div>
+                <button
+                  className="btn-icon-sm btn-danger"
+                  onClick={() => handleRemoveVariable(variable.id)}
+                  title="Delete"
+                >
+                  ✕
+                </button>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </div>
     </div>
   )
 }

@@ -169,6 +169,23 @@ const HELP_FEATURES: HelpFeature[] = [
       'If offline, cached shell loads and falls back to root route behavior.',
     ],
   },
+  {
+    id: 'security',
+    title: 'Security',
+    description:
+      'Postcare follows a local-first model, but browser security still depends on how and where you run it.',
+    steps: [
+      'Data locality: collections, requests, history, and environment variables are stored in your browser IndexedDB (not automatically uploaded by Postcare).',
+      'Secret handling: variables marked Secret are masked in the UI, but still exist in local browser storage and memory during runtime substitution.',
+      'Network exposure: request payloads and headers are sent to target APIs exactly as configured, so backend transport security (HTTPS/TLS) is essential.',
+      'AI safety posture: AI assistance is designed around redaction-safe flows, but you should still avoid placing raw credentials in prompt-like free text.',
+      'Offline/PWA impact: installability and caching improve availability, but shared devices can expose cached app state if OS/browser profiles are not protected.',
+      'Browser trust boundary: any malicious extension, injected script, or compromised machine user session can access local app state, including stored request metadata.',
+      'Production-use guidance: safe for many workflows when run on trusted devices, with HTTPS targets, least-privilege tokens, and per-environment separation.',
+      'High-sensitivity guidance: for regulated or highly sensitive data, use dedicated browser profiles, short-lived credentials, frequent local cleanup, and endpoint-side audit controls.',
+      'Responsibility notice: the developer and contributors are not liable for any mishap, misuse, breach, or data leak arising from deployment or use on the web.',
+    ],
+  },
 ]
 
 export function HelpCenter({ open, onClose }: HelpCenterProps) {
@@ -235,7 +252,7 @@ export function HelpCenter({ open, onClose }: HelpCenterProps) {
           <section className="help-content" role="tabpanel" aria-label={activeFeature?.title ?? 'Help feature'}>
             <h3>{activeFeature?.title}</h3>
             <p>{activeFeature?.description}</p>
-            <h4>Usage Steps</h4>
+            <h4>{activeFeature?.id === 'security' ? 'Security Assessment & Disclaimer' : 'Usage Steps'}</h4>
             <ol>
               {activeFeature?.steps.map((step, index) => (
                 <li key={`${activeFeature.id}-step-${index}`}>{step}</li>

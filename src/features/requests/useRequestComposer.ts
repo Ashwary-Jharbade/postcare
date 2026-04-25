@@ -22,6 +22,45 @@ type ComposerState =
       saveMessage?: string
     }
 
+function parseQueryParamsFromUrl(url: string): KeyValueEntry[] | null {
+  if (!url.includes('?')) {
+    return null
+  }
+
+  try {
+    const parsedUrl = new URL(url, 'https://placeholder.local')
+
+    return Array.from(parsedUrl.searchParams.entries()).map(([key, value]) => ({
+      id: `kv_${crypto.randomUUID()}`,
+      key,
+      value,
+      enabled: true,
+    }))
+  } catch {
+    return null
+  }
+}
+
+function applyQueryParamsToUrl(url: string, queryParams: KeyValueEntry[]): string {
+  const hashStart = url.indexOf('#')
+  const hashSuffix = hashStart >= 0 ? url.slice(hashStart) : ''
+  const withoutHash = hashStart >= 0 ? url.slice(0, hashStart) : url
+  const queryStart = withoutHash.indexOf('?')
+  const baseUrl = queryStart >= 0 ? withoutHash.slice(0, queryStart) : withoutHash
+
+  const nextSearch = new URLSearchParams()
+  queryParams.forEach((entry) => {
+    if (!entry.key) {
+      return
+    }
+
+    nextSearch.append(entry.key, entry.value)
+  })
+
+  const searchText = nextSearch.toString()
+  return `${baseUrl}${searchText ? `?${searchText}` : ''}${hashSuffix}`
+}
+
 export function useRequestComposer(requestId: string | null) {
   const [state, setState] = useState<ComposerState>({ status: 'loading' })
 
@@ -154,7 +193,14 @@ export function useRequestComposer(requestId: string | null) {
       void save({ name })
     },
     setUrl(url: string) {
-      void save({ url })
+      const parsedQueryParams = parseQueryParamsFromUrl(url)
+
+      if (!parsedQueryParams) {
+        void save({ url })
+        return
+      }
+
+      void save({ url, queryParams: parsedQueryParams })
     },
     setBodyMode(mode: RequestBodyMode) {
       if (state.status !== 'ready') {
@@ -215,7 +261,11 @@ export function useRequestComposer(requestId: string | null) {
       void save({ headers })
     },
     setQueryParams(queryParams: KeyValueEntry[]) {
-      void save({ queryParams })
+      if (state.status !== 'ready') {
+        return
+      }
+
+      void save({ queryParams, url: applyQueryParamsToUrl(state.request.url, queryParams) })
     },
     setAuth(type: AuthType) {
       if (state.status !== 'ready') {
