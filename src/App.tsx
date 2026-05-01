@@ -6,6 +6,8 @@ import { EnvironmentsListView } from './features/environments/EnvironmentsListVi
 import { EnvironmentVariablesEditor } from './features/environments/EnvironmentVariablesEditor'
 import { useStorageSummary } from './features/storage/useStorageSummary'
 import { useEnvironments } from './features/environments/useEnvironments'
+import { useCollections } from './features/collections/useCollections'
+import { useCollectionRequests } from './features/collections/useCollectionRequests'
 import { HelpCenter } from './features/help/HelpCenter'
 import './features/help/HelpCenter.css'
 
@@ -15,6 +17,8 @@ export function App() {
   const [selectedCollectionId, setSelectedCollectionId] = useState<string | null>(null)
   const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null)
   const [selectedEnvironmentId, setSelectedEnvironmentId] = useState<string | null>(null)
+  const collectionsState = useCollections()
+  const requestsState = useCollectionRequests(selectedCollectionId)
   const [sidebarTab, setSidebarTab] = useState<'collections' | 'requests' | 'environments'>('collections')
   const [sidebarFilter, setSidebarFilter] = useState('')
   const [showEnvironmentEditor, setShowEnvironmentEditor] = useState(false)
@@ -57,7 +61,7 @@ export function App() {
     }
 
     // Auto-select first collection if none selected
-    const allCollections = storage.summary.collections ?? 0
+    const collections = collectionsState.collections || []
     const currentCollectionId = selectedCollectionId
     const hasValidSelection = currentCollectionId !== null
     const selectedEnvironment = environments.environments.find((e) => e.id === selectedEnvironmentId)
@@ -65,6 +69,27 @@ export function App() {
     // Initialize selected environment if not set
     if (!selectedEnvironmentId && environments.activeEnvironmentId) {
       setSelectedEnvironmentId(environments.activeEnvironmentId)
+    }
+
+    // If no collection selected but collections exist, select the first
+    if (!selectedCollectionId && collections.length > 0) {
+      setSelectedCollectionId(collections[0].id)
+    }
+
+    // If a collection is selected but it no longer exists, fallback to first
+    if (selectedCollectionId && !collections.find((c) => c.id === selectedCollectionId)) {
+      setSelectedCollectionId(collections[0]?.id ?? null)
+    }
+
+    // Ensure a request is selected when a collection is selected
+    const requestsForCollection = requestsState.requests || []
+    if (selectedCollectionId && !selectedRequestId && requestsForCollection.length > 0) {
+      setSelectedRequestId(requestsForCollection[0].id)
+    }
+
+    // If selected request no longer exists, clear selection
+    if (selectedRequestId && !requestsForCollection.find((r) => r.id === selectedRequestId)) {
+      setSelectedRequestId(null)
     }
 
     // Show workflow with docs-style single sidebar and focused main pane
@@ -135,7 +160,17 @@ export function App() {
               <EnvironmentsListView
                 selectedEnvironmentId={selectedEnvironmentId}
                 filterQuery={sidebarFilter}
-                onSelectEnvironment={setSelectedEnvironmentId}
+                onSelectEnvironment={(id) => {
+                  setSelectedEnvironmentId(id)
+                }}
+                onToggleEnvironmentEditor={(id) => {
+                  if (showEnvironmentEditor && selectedEnvironmentId === id) {
+                    setShowEnvironmentEditor(false)
+                  } else {
+                    setSelectedEnvironmentId(id)
+                    setShowEnvironmentEditor(true)
+                  }
+                }}
               />
             )}
           </div>
@@ -157,13 +192,7 @@ export function App() {
             >
               Clear filter
             </button>
-            <button
-              type="button"
-              className="ghost-button"
-              onClick={() => setShowEnvironmentEditor((value) => !value)}
-            >
-              {showEnvironmentEditor ? 'Hide environment variables' : 'Show environment variables'}
-            </button>
+            
           </div>
 
           <div className="workspace-main-header">
@@ -172,9 +201,36 @@ export function App() {
               <h2>Request Workflow</h2>
             </div>
             <div className="workspace-main-actions">
-              <span className="subtle-chip">
-                Active environment: {selectedEnvironment?.name ?? 'None selected'}
-              </span>
+              <div className="active-env">
+                {selectedEnvironment ? (
+                  <button
+                    type="button"
+                    className="active-env-chip"
+                    title={`Active environment: ${selectedEnvironment.name}`}
+                    onClick={() => {
+                      // Toggle editor for this environment
+                      if (showEnvironmentEditor && selectedEnvironmentId === selectedEnvironment.id) {
+                        setShowEnvironmentEditor(false)
+                      } else {
+                        setSelectedEnvironmentId(selectedEnvironment.id)
+                        setShowEnvironmentEditor(true)
+                      }
+                    }}
+                  >
+                    <span
+                      className="env-dot"
+                      style={{ backgroundColor: selectedEnvironment.color }}
+                      aria-hidden="true"
+                    />
+                    <span className="env-name">{selectedEnvironment.name}</span>
+                    <svg className="env-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                      <path d="M9 6l6 6-6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </button>
+                ) : (
+                  <span className="subtle-chip">Active environment: None</span>
+                )}
+              </div>
             </div>
           </div>
 
@@ -185,9 +241,9 @@ export function App() {
               ) : (
                 <section className="composer-shell">
                   <h2>Request composer</h2>
-                  {!hasValidSelection && allCollections > 0 ? (
+                  {!hasValidSelection && collections.length > 0 ? (
                     <p>Select a collection and request to start editing.</p>
-                  ) : allCollections === 0 ? (
+                  ) : collections.length === 0 ? (
                     <p>Create a collection to begin.</p>
                   ) : (
                     <p>Select a request to edit.</p>

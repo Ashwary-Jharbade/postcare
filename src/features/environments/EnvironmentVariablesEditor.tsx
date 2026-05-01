@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useEnvironments } from './useEnvironments'
 import './EnvironmentVariablesEditor.css'
+import { useConfirm } from '../../hooks/useConfirm'
 
 interface EnvironmentVariablesEditorProps {
   environmentId: string | null
@@ -13,6 +14,7 @@ export function EnvironmentVariablesEditor({ environmentId }: EnvironmentVariabl
   const [newVarValue, setNewVarValue] = useState('')
   const [newVarIsSecret, setNewVarIsSecret] = useState(false)
   const [statusMessage, setStatusMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
+  const showConfirm = useConfirm()
 
   // Read environment from the hook's own state so it always reflects the latest data
   const environment = environmentId
@@ -56,7 +58,8 @@ export function EnvironmentVariablesEditor({ environmentId }: EnvironmentVariabl
 
   async function handleRemoveVariable(variableId: string) {
     if (!environment) return
-    if (!confirm('Delete this variable?')) return
+    const confirmed = await showConfirm('Delete variable', 'Delete this variable?')
+    if (!confirmed) return
     try {
       await envs.removeVariable(environment.id, variableId)
       showStatus('success', 'Variable removed')
@@ -140,7 +143,7 @@ export function EnvironmentVariablesEditor({ environmentId }: EnvironmentVariabl
             <span>Secret</span>
           </label>
           <div className="form-actions">
-            <button onClick={handleAddVariable} className="btn-sm btn-primary">
+            <button onClick={handleAddVariable} className="btn-sm">
               Add
             </button>
             <button
@@ -232,6 +235,7 @@ export function EnvironmentVariablesEditor({ environmentId }: EnvironmentVariabl
           ))}
         </ul>
       </div>
+      {/* ConfirmDialog rendered by ConfirmProvider at app root */}
     </div>
   )
 }

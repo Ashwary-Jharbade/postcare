@@ -2,6 +2,7 @@ import { useRef, useState } from 'react'
 import { useCollections } from './useCollections'
 import { useImportExport } from './useImportExport'
 import './CollectionsListView.css'
+import { useConfirm } from '../../hooks/useConfirm'
 
 interface CollectionsListViewProps {
   selectedCollectionId: string | null
@@ -24,6 +25,7 @@ export function CollectionsListView({
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editingName, setEditingName] = useState('')
   const [importMessage, setImportMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
+  const showConfirm = useConfirm()
 
   async function handleCreate() {
     if (!newCollectionName.trim()) return
@@ -49,7 +51,8 @@ export function CollectionsListView({
   }
 
   async function handleDelete(id: string) {
-    if (!confirm('Delete this collection and all its requests?')) return
+    const confirmed = await showConfirm('Delete collection', 'Delete this collection and all its requests?')
+    if (!confirmed) return
     try {
       await collections.deleteCollection(id)
       if (selectedCollectionId === id) {
@@ -190,7 +193,7 @@ export function CollectionsListView({
             autoFocus
           />
           <div className="form-actions">
-            <button onClick={handleCreate} className="btn-sm btn-primary">
+            <button onClick={handleCreate} className="btn-sm">
               Create
             </button>
             <button
@@ -211,6 +214,13 @@ export function CollectionsListView({
           <li
             key={collection.id}
             className={`collection-item ${selectedCollectionId === collection.id ? 'selected' : ''}`}
+            onClick={(event) => {
+              const target = event.target as HTMLElement
+              if (target.closest('button, input, textarea, select, a, [role="button"]')) {
+                return
+              }
+              onSelectCollection(collection.id)
+            }}
           >
             {editingId === collection.id ? (
               <div className="collection-edit-form">
@@ -297,6 +307,7 @@ export function CollectionsListView({
             : 'No collections yet. Create one to get started.'}
         </p>
       )}
+      {/* ConfirmDialog rendered by ConfirmProvider at app root */}
     </div>
   )
 }

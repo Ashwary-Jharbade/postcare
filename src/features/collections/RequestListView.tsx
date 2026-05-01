@@ -3,6 +3,7 @@ import { database } from '../../lib/storage/db'
 import { type RequestRecord, createId, createTimestamp } from '../../domain/models'
 import { useCollectionRequests } from './useCollectionRequests'
 import './RequestListView.css'
+import { useConfirm } from '../../hooks/useConfirm'
 
 interface RequestListViewProps {
   collectionId: string | null
@@ -22,6 +23,7 @@ export function RequestListView({
   const [newRequestName, setNewRequestName] = useState('')
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editingName, setEditingName] = useState('')
+  const showConfirm = useConfirm()
 
   async function handleCreateRequest() {
     if (!newRequestName.trim() || !collectionId) return
@@ -80,7 +82,8 @@ export function RequestListView({
   }
 
   async function handleDeleteRequest(id: string) {
-    if (!confirm('Delete this request?')) return
+    const confirmed = await showConfirm('Delete request', 'Delete this request?')
+    if (!confirmed) return
     if (!collectionId) return
     try {
       await database.requests.delete(id)
@@ -160,7 +163,7 @@ export function RequestListView({
             autoFocus
           />
           <div className="form-actions">
-            <button onClick={handleCreateRequest} className="btn-sm btn-primary">
+            <button onClick={handleCreateRequest} className="btn-sm">
               Create
             </button>
             <button
@@ -181,6 +184,13 @@ export function RequestListView({
           <li
             key={request.id}
             className={`request-item ${selectedRequestId === request.id ? 'selected' : ''}`}
+            onClick={(event) => {
+              const target = event.target as HTMLElement
+              if (target.closest('button, input, textarea, select, a, [role="button"]')) {
+                return
+              }
+              onSelectRequest(request.id)
+            }}
           >
             {editingId === request.id ? (
               <div className="request-edit-form">
@@ -256,6 +266,7 @@ export function RequestListView({
             : 'No requests in this collection. Create one to get started.'}
         </p>
       )}
+      {/* ConfirmDialog rendered by ConfirmProvider at app root */}
     </div>
   )
 }

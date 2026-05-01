@@ -1,16 +1,19 @@
 import { useState } from 'react'
 import { useEnvironments } from './useEnvironments'
 import './EnvironmentsListView.css'
+import { useConfirm } from '../../hooks/useConfirm'
 
 interface EnvironmentsListViewProps {
   selectedEnvironmentId: string | null
   onSelectEnvironment: (id: string) => void
+  onToggleEnvironmentEditor?: (id: string) => void
   filterQuery?: string
 }
 
 export function EnvironmentsListView({
   selectedEnvironmentId,
   onSelectEnvironment,
+  onToggleEnvironmentEditor,
   filterQuery = '',
 }: EnvironmentsListViewProps) {
   const envs = useEnvironments()
@@ -19,6 +22,7 @@ export function EnvironmentsListView({
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editingName, setEditingName] = useState('')
   const [newEnvColor, setNewEnvColor] = useState('#3b82f6')
+  const showConfirm = useConfirm()
 
   async function handleCreate() {
     if (!newEnvName.trim()) return
@@ -46,7 +50,9 @@ export function EnvironmentsListView({
   }
 
   async function handleDelete(id: string) {
-    if (!confirm('Delete this environment and all its variables?')) return
+    const confirmed = await showConfirm('Delete environment', 'Delete this environment and all its variables?')
+    if (!confirmed) return
+
     try {
       await envs.deleteEnvironment(id)
       if (selectedEnvironmentId === id) {
@@ -62,6 +68,18 @@ export function EnvironmentsListView({
   }
 
   async function handleSetActive(id: string) {
+    const env = envs.environments.find((e) => e.id === id)
+    if (!env) return
+
+    // Do nothing if already active
+    if (envs.activeEnvironmentId === id) {
+      onSelectEnvironment(id)
+      return
+    }
+
+    const confirmed = await showConfirm('Switch active environment', `Switch active environment to "${env.name}"?`)
+    if (!confirmed) return
+
     try {
       await envs.setActiveEnvironment(id)
       onSelectEnvironment(id)
@@ -131,7 +149,7 @@ export function EnvironmentsListView({
             />
           </label>
           <div className="form-actions">
-            <button onClick={handleCreate} className="btn-sm btn-primary">
+            <button onClick={handleCreate} className="btn-sm">
               Create
             </button>
             <button
@@ -156,6 +174,13 @@ export function EnvironmentsListView({
             <li
               key={env.id}
               className={`environment-item ${isSelected ? 'selected' : ''} ${isActive ? 'active' : ''}`}
+              onClick={(event) => {
+                const target = event.target as HTMLElement
+                if (target.closest('button, input, textarea, select, a, [role="button"]')) {
+                  return
+                }
+                handleSetActive(env.id)
+              }}
             >
               {editingId === env.id ? (
                 <div className="environment-edit-form">
@@ -210,6 +235,20 @@ export function EnvironmentsListView({
                   <div className="environment-actions">
                     <button
                       className="btn-icon-sm"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        // Toggle variables editor for this environment
+                        onSelectEnvironment(env.id)
+                        if (typeof (onToggleEnvironmentEditor) === 'function') {
+                          onToggleEnvironmentEditor(env.id)
+                        }
+                      }}
+                      title="Toggle variables"
+                    >
+                      ⚙
+                    </button>
+                    <button
+                      className="btn-icon-sm"
                       onClick={() => {
                         setEditingId(env.id)
                         setEditingName(env.name)
@@ -240,6 +279,7 @@ export function EnvironmentsListView({
             : 'No environments yet. Create one to get started.'}
         </p>
       )}
+      {/* ConfirmDialog rendered by ConfirmProvider at app root */}
     </div>
   )
 }

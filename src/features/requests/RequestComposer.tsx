@@ -486,22 +486,6 @@ export function RequestComposer({ requestId, environment }: RequestComposerProps
           <h3>Execution</h3>
           <p className="subtle">Run the current request directly from the browser.</p>
         </div>
-        <button
-          className="primary-button"
-          disabled={execution.state.status === 'running'}
-          onClick={() =>
-            execution.run(request, environment, {
-              simulation: {
-                mode: simulationMode,
-                delayMs: Number.parseInt(simulationDelayMs, 10) || 0,
-                forcedStatus: Number.parseInt(simulationStatusCode, 10) || 500,
-              },
-            })
-          }
-          type="button"
-        >
-          {execution.state.status === 'running' ? 'Sending…' : 'Send request'}
-        </button>
       </div>
 
       <div className="composer-grid">
@@ -551,11 +535,13 @@ export function RequestComposer({ requestId, environment }: RequestComposerProps
             value={request.name}
           />
         </label>
+      </div>
 
-        <label className="stack-field">
-          <span>Method</span>
+      <label className="stack-field">
+        <span>URL</span>
+        <div className="url-input-row">
           <select
-            className="input"
+            className="input method-select"
             onChange={(event) => composer.setMethod(event.target.value as HttpMethod)}
             value={request.method}
           >
@@ -565,49 +551,62 @@ export function RequestComposer({ requestId, environment }: RequestComposerProps
               </option>
             ))}
           </select>
-        </label>
-
-        <label className="stack-field stack-field-wide">
-          <span>URL</span>
           <input
             className="input"
             onChange={(event) => composer.setUrl(event.target.value)}
             placeholder="https://api.example.com/health"
             value={request.url}
           />
-        </label>
-      </div>
+          <button
+            className="primary-button"
+            disabled={execution.state.status === 'running'}
+            onClick={() =>
+              execution.run(request, environment, {
+                simulation: {
+                  mode: simulationMode,
+                  delayMs: Number.parseInt(simulationDelayMs, 10) || 0,
+                  forcedStatus: Number.parseInt(simulationStatusCode, 10) || 500,
+                },
+              })
+            }
+            type="button"
+          >
+            {execution.state.status === 'running' ? 'Sending…' : 'Send'}
+          </button>
+        </div>
+      </label>
 
       <div className="composer-section composer-tabs-section">
-        <div className="composer-tabs" role="tablist" aria-label="Request sections">
-          {COMPOSER_TABS.map((tab) => {
-            const tabPanelId = `composer-tab-panel-${tab.id}`
-            const isActive = activeComposerTab === tab.id
+        <div className="composer-tabs-container">
+          <div className="composer-tabs" role="tablist" aria-label="Request sections">
+            {COMPOSER_TABS.map((tab) => {
+              const tabPanelId = `composer-tab-panel-${tab.id}`
+              const isActive = activeComposerTab === tab.id
 
-            return (
-              <button
-                key={tab.id}
-                className={`composer-tab ${isActive ? 'composer-tab-active' : ''}`}
-                role="tab"
-                type="button"
-                id={`composer-tab-${tab.id}`}
-                aria-controls={tabPanelId}
-                aria-selected={isActive}
-                onClick={() => setActiveComposerTab(tab.id)}
-              >
-                {tab.label}
-              </button>
-            )
-          })}
-        </div>
+              return (
+                <button
+                  key={tab.id}
+                  className={`composer-tab ${isActive ? 'composer-tab-active' : ''}`}
+                  role="tab"
+                  type="button"
+                  id={`composer-tab-${tab.id}`}
+                  aria-controls={tabPanelId}
+                  aria-selected={isActive}
+                  onClick={() => setActiveComposerTab(tab.id)}
+                >
+                  {tab.label}
+                </button>
+              )
+            })}
+          </div>
 
-        {activeComposerTab === 'queryParams' && (
-          <div
-            className="composer-tab-panel"
-            id="composer-tab-panel-queryParams"
-            role="tabpanel"
-            aria-labelledby="composer-tab-queryParams"
-          >
+          {activeComposerTab === 'queryParams' && (
+            <div
+              className="composer-tab-panel"
+              id="composer-tab-panel-queryParams"
+              role="tabpanel"
+              aria-labelledby="composer-tab-queryParams"
+            >
             <div className="section-header">
               <h3>Query params</h3>
               <button className="ghost-button" onClick={() => composer.addQueryParamRow()} type="button">
@@ -616,15 +615,15 @@ export function RequestComposer({ requestId, environment }: RequestComposerProps
             </div>
             {renderFieldTable('queryParams', request.queryParams)}
           </div>
-        )}
+          )}
 
-        {activeComposerTab === 'header' && (
-          <div
-            className="composer-tab-panel"
-            id="composer-tab-panel-header"
-            role="tabpanel"
-            aria-labelledby="composer-tab-header"
-          >
+          {activeComposerTab === 'header' && (
+            <div
+              className="composer-tab-panel"
+              id="composer-tab-panel-header"
+              role="tabpanel"
+              aria-labelledby="composer-tab-header"
+            >
             <div className="section-header">
               <h3>Header</h3>
               <button className="ghost-button" onClick={() => composer.addHeaderRow()} type="button">
@@ -633,15 +632,15 @@ export function RequestComposer({ requestId, environment }: RequestComposerProps
             </div>
             {renderFieldTable('headers', request.headers)}
           </div>
-        )}
+          )}
 
-        {activeComposerTab === 'auth' && (
-          <div
-            className="composer-tab-panel"
-            id="composer-tab-panel-auth"
-            role="tabpanel"
-            aria-labelledby="composer-tab-auth"
-          >
+          {activeComposerTab === 'auth' && (
+            <div
+              className="composer-tab-panel"
+              id="composer-tab-panel-auth"
+              role="tabpanel"
+              aria-labelledby="composer-tab-auth"
+            >
             <div className="section-header">
               <h3>Auth</h3>
             </div>
@@ -663,15 +662,15 @@ export function RequestComposer({ requestId, environment }: RequestComposerProps
             </div>
             {renderAuthFields()}
           </div>
-        )}
+          )}
 
-        {activeComposerTab === 'body' && (
-          <div
-            className="composer-tab-panel"
-            id="composer-tab-panel-body"
-            role="tabpanel"
-            aria-labelledby="composer-tab-body"
-          >
+          {activeComposerTab === 'body' && (
+            <div
+              className="composer-tab-panel"
+              id="composer-tab-panel-body"
+              role="tabpanel"
+              aria-labelledby="composer-tab-body"
+            >
             <div className="section-header">
               <h3>Body</h3>
             </div>
@@ -693,7 +692,8 @@ export function RequestComposer({ requestId, environment }: RequestComposerProps
             </div>
             {renderBodyEditor()}
           </div>
-        )}
+          )}
+        </div>
       </div>
 
       {environment && (
