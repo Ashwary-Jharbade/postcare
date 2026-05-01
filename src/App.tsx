@@ -73,7 +73,7 @@ export function App() {
 
     // If no collection selected but collections exist, select the first
     if (!selectedCollectionId && collections.length > 0) {
-      setSelectedCollectionId(collections[0].id)
+      setSelectedCollectionId(collections[0]?.id ?? null)
     }
 
     // If a collection is selected but it no longer exists, fallback to first
@@ -84,7 +84,7 @@ export function App() {
     // Ensure a request is selected when a collection is selected
     const requestsForCollection = requestsState.requests || []
     if (selectedCollectionId && !selectedRequestId && requestsForCollection.length > 0) {
-      setSelectedRequestId(requestsForCollection[0].id)
+      setSelectedRequestId(requestsForCollection[0]?.id ?? null)
     }
 
     // If selected request no longer exists, clear selection
