@@ -28,6 +28,12 @@ describe('executeRequest simulations', () => {
     const response = await executeRequest(request)
 
     expect(fetchMock).toHaveBeenCalledTimes(1)
+    expect(fetchMock.mock.calls[0]?.[1]).toEqual(
+      expect.objectContaining({
+        method: 'GET',
+        cache: 'no-store',
+      }),
+    )
     expect(response.status).toBe(200)
     expect(response.bodyFormat).toBe('json')
   })

@@ -282,6 +282,7 @@ export async function executeRequest(
     method: request.method,
     headers,
     body,
+    cache: 'no-store',
   })
 
   const responseBody = await response.text()

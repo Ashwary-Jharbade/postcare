@@ -10,6 +10,7 @@ import {
 } from '../../domain/models'
 import { database, isIndexedDbAvailable } from '../../lib/storage/db'
 import { normalizeRequestBodyState } from '../../lib/body/requestBodyState'
+import { type ParsedCurlImport } from './curlImport'
 
 type ComposerState =
   | { status: 'loading' }
@@ -292,6 +293,23 @@ export function useRequestComposer(requestId: string | null) {
             ...state.request.auth.config,
             [key]: value,
           },
+        },
+      })
+    },
+    importCurlRequest(imported: ParsedCurlImport) {
+      if (state.status !== 'ready') {
+        return
+      }
+
+      void save({
+        method: imported.method,
+        url: imported.url,
+        queryParams: imported.queryParams,
+        headers: imported.headers,
+        body: imported.body,
+        auth: {
+          type: 'none',
+          config: {},
         },
       })
     },

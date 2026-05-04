@@ -3,6 +3,9 @@
 Use this checklist as the single task tracker for humans and AI agents. Mark items complete only after code, tests, and docs are updated together.
 
 ## Completed
+- [x] Feature workflow playbook added in `docs/FEATURE_WORKFLOW.md` with commands, hooks, skills, and subagent usage guidance
+- [x] Codex custom subagent definitions converted from Markdown briefs into project-scoped TOML agent configs under `.codex/agents/`
+- [x] Legacy `ai/` workflow prompts converted into repo-local Codex commands, skills, agent briefs, and working hook config/scripts under `.codex/`
 - [x] Initial product requirements captured in [docs/PROJECT_PLAN.md](/Users/ashwaryjharbade/Projects/postcare/docs/PROJECT_PLAN.md)
 - [x] Contributor guide created in [AGENTS.md](/Users/ashwaryjharbade/Projects/postcare/AGENTS.md)
 - [x] Open-source-only and secure-tooling rule added to project planning
@@ -29,6 +32,7 @@ Use this checklist as the single task tracker for humans and AI agents. Mark ite
 - [x] Accessibility, offline, and migration test coverage added
 - [x] Direct dependencies reviewed against open-source and security policy
 - [x] OpenAI docs-inspired UI style system applied and documented
+- [x] Proposed feature tracking JSON added for pasted `cURL` import quick testing
 
 ## Pending: Project Setup
 - [x] Create `README.md` with local setup, scope, and development workflow
@@ -67,6 +71,9 @@ Use this checklist as the single task tracker for humans and AI agents. Mark ite
 - [x] Add mock delays, failures, and edge-case simulation
 - [x] Add logs, tracing, and error diagnostics
 - [x] Add AI-assisted edge-case generation and request improvement with redaction safeguards
+- [ ] Add pasted `cURL` import flow that parses and fills request fields for quick testing
+  First slice implemented: primary request composer paste dialog plus common `cURL` parsing for method, URL, headers, query params, and body.
+  Remaining follow-up: map auth-specific flags and headers into dedicated auth fields, expand flag coverage, and add help copy.
 
 ## Pending: Quality Gates
 - [x] Define acceptance criteria for each major feature before implementation

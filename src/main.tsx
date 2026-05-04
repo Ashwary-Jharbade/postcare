@@ -1,7 +1,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { App } from './App'
-import { ConfirmProvider } from './hooks/useConfirm'
+import { ConfirmProvider } from './hooks/ConfirmProvider'
 import './styles.css'
 
 if ('serviceWorker' in navigator) {

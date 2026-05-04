@@ -1,0 +1,110 @@
+{
+  "id": "feat-curl-import-quick-testing",
+  "title": "Import request from pasted cURL for quick testing",
+  "status": "in-progress",
+  "priority": "high",
+  "source": "user-request",
+  "createdOn": "2026-05-04",
+  "summary": "Allow users to paste a cURL command and have Postcare parse it into the request composer automatically.",
+  "userValue": "Reduces setup time by converting existing terminal-ready requests into editable Postcare requests for faster testing and debugging.",
+  "problemStatement": "Users who already have a working cURL command must currently re-enter the method, URL, headers, authentication, and body fields manually before they can test the request inside Postcare.",
+  "assumptions": [
+    "The first implementation target is the existing primary request composer rather than collection-level bulk import.",
+    "The first slice should avoid new dependencies and use a small in-repo parser for common cURL patterns.",
+    "Users should explicitly paste and apply a cURL command instead of Postcare auto-reading clipboard contents.",
+    "Reviewable partial support is acceptable if unsupported flags surface clear warnings and imported values remain editable."
+  ],
+  "scope": {
+    "in": [
+      "Add a visible paste/import entry point in the request composer",
+      "Parse common cURL flags into Postcare request fields",
+      "Populate method, URL, query params, headers, auth, and body when the command contains them",
+      "Show validation feedback when the pasted command is malformed or partially unsupported",
+      "Allow users to review parsed values before sending the request"
+    ],
+    "out": [
+      "Shell script execution",
+      "Importing multiple requests from a single pasted block",
+      "Full support for every cURL flag on the first iteration"
+    ]
+  },
+  "acceptanceCriteria": [
+    "Users can open a paste/import flow from the request composer and submit a raw cURL command.",
+    "The parser extracts the request URL and HTTP method correctly for standard cURL commands.",
+    "Headers from repeated -H or --header flags populate the request header editor.",
+    "Request body content from --data, --data-raw, or --data-binary populates the body editor.",
+    "Basic auth and bearer-style Authorization headers map into the most appropriate auth or header fields without dropping values.",
+    "If the command implies JSON, the body mode and content type default to JSON when safe.",
+    "Unsupported or ambiguous flags produce a clear non-blocking warning instead of silently failing.",
+    "Users can edit the populated fields after import and before request execution."
+  ],
+  "securityConsiderations": [
+    "Treat pasted cURL input as sensitive because it may contain tokens, cookies, or authorization headers.",
+    "Do not log raw pasted commands in diagnostics, analytics, or AI prompt context.",
+    "Apply existing redaction rules to imported auth and secret-like header values.",
+    "Validate imported content before persistence to avoid malformed local state."
+  ],
+  "testPlan": [
+    "Unit tests for parsing method, URL, headers, query params, body, and auth from representative cURL samples.",
+    "Unit tests for malformed input and unsupported flag warnings.",
+    "UI tests covering paste flow, parsed field population, and review-before-send behavior.",
+    "Regression tests confirming imported secret values are redacted in AI assistant and diagnostics surfaces."
+  ],
+  "firstImplementationSlice": {
+    "title": "Add a basic pasted cURL import dialog and parser for the primary request composer",
+    "goal": "Let a user paste a common single-request cURL command and apply the parsed method, URL, headers, query params, and body into the current composer without covering every auth or flag variant yet.",
+    "status": "implemented",
+    "scope": [
+      "Add an Import cURL action in the request composer header or top controls.",
+      "Show a local-only paste dialog with a textarea, apply action, cancel action, and inline validation/warning copy.",
+      "Parse a single cURL command with support for command name, URL, -X/--request, repeated -H/--header, and --data/--data-raw/--data-binary.",
+      "Populate composer method, URL, query params, headers, and body from the parsed result.",
+      "Infer JSON body mode and content type only when a parsed body plus headers make that safe."
+    ],
+    "outOfScope": [
+      "Mapping Authorization headers into bearer/basic auth fields.",
+      "Cookie, form upload, compressed, proxy, certificate, or multi-line shell feature support.",
+      "In-app help copy beyond concise inline warnings in the paste flow."
+    ],
+    "files": [
+      "src/features/requests/RequestComposer.tsx",
+      "src/features/requests/useRequestComposer.ts or src/features/requests/usePrimaryRequestComposer.ts",
+      "src/features/requests/curlImport.ts",
+      "src/features/requests/curlImport.test.ts"
+    ],
+    "acceptanceCriteria": [
+      "A user can open the paste flow from the request composer and submit a cURL command without leaving the page.",
+      "Applying a valid basic cURL command updates the current request method and URL.",
+      "Repeated header flags populate enabled header rows in the composer.",
+      "Supported data flags populate the body editor and preserve the imported text.",
+      "If the pasted command contains a query string, the composer query param rows reflect it through the existing URL parsing path.",
+      "Malformed input or unsupported flags return a visible warning and do not silently clear the current request."
+    ],
+    "testPlan": [
+      "Add parser unit tests for minimal GET, explicit method, repeated headers, JSON body, and unsupported flag warnings.",
+      "Add a request-composer UI test that opens the paste flow, applies a sample cURL command, and asserts that populated fields appear in the current composer."
+    ]
+  },
+  "documentationUpdates": [
+    "Add usage guidance to README feature list if implemented.",
+    "Add in-app help content describing supported cURL import syntax and limitations.",
+    "Update acceptance criteria docs when implementation is approved."
+  ],
+  "impactedAreas": [
+    "src/features/requests",
+    "src/domain",
+    "src/lib/redaction",
+    "src/features/help"
+  ],
+  "notes": [
+    "Initial parsing should prioritize common copy-paste cases from curl examples in API docs.",
+    "A review step is preferable to silent auto-save when imported values contain secrets.",
+    "Planned on 2026-05-04: first slice is intentionally limited to the current primary request composer and common flags so it remains reviewable.",
+    "Implemented on 2026-05-04: added a local-only paste dialog in the request composer plus parsing for URL, method, repeated headers, and common data flags.",
+    "Follow-up fix on 2026-05-04: added support for the common `-d` shorthand so imported POST-style cURL requests do not fall back to GET with an empty body.",
+    "Follow-up fix on 2026-05-04: conditional headers such as `If-None-Match` are ignored during import so the browser does not return `304 Not Modified` with an empty response body.",
+    "Review pass on 2026-05-04 found one correctness issue: imported requests could retain stale composer auth. The slice now resets auth to `none` during import until dedicated auth mapping is implemented.",
+    "Current slice keeps Authorization header values in headers instead of mapping them into bearer or basic auth fields.",
+    "Validation status on 2026-05-04: `npm run test`, `npm run typecheck`, and `npm run build` passed. `npm run lint` still fails in existing unrelated file `src/hooks/useConfirm.tsx`."
+  ]
+}

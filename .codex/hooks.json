@@ -1,0 +1,29 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "^Bash$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/usr/bin/python3 \"$(git rev-parse --show-toplevel)/.codex/hooks/test_failure_followup.py\"",
+            "timeout": 30,
+            "statusMessage": "Checking test/build command result"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/usr/bin/python3 \"$(git rev-parse --show-toplevel)/.codex/hooks/build_complete_review.py\"",
+            "timeout": 30,
+            "statusMessage": "Checking whether review and validation are still needed"
+          }
+        ]
+      }
+    ]
+  }
+}

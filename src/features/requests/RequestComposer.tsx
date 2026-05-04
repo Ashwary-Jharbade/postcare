@@ -20,6 +20,7 @@ import {
   getBodyPreviewText,
   getDefaultContentType,
 } from '../../lib/body/requestBodyState'
+import { parseCurlCommand } from './curlImport'
 import './ResponseViewerTabs.css'
 import './VariableInfo.css'
 import './ResponseComparisonPanel.css'
@@ -59,6 +60,10 @@ export function RequestComposer({ requestId, environment }: RequestComposerProps
   const [simulationStatusCode, setSimulationStatusCode] = useState('500')
   const [jsonFormatError, setJsonFormatError] = useState<string | null>(null)
   const [activeComposerTab, setActiveComposerTab] = useState<ComposerTab>('queryParams')
+  const [isCurlImportOpen, setIsCurlImportOpen] = useState(false)
+  const [curlImportText, setCurlImportText] = useState('')
+  const [curlImportError, setCurlImportError] = useState<string | null>(null)
+  const [curlImportWarnings, setCurlImportWarnings] = useState<string[]>([])
 
   function updateFieldRows(
     rows: KeyValueEntry[],
@@ -189,6 +194,35 @@ export function RequestComposer({ requestId, environment }: RequestComposerProps
 
   function setAuthField(key: string, value: string) {
     composer.setAuthConfig(key, value)
+  }
+
+  function openCurlImport() {
+    setIsCurlImportOpen(true)
+    setCurlImportError(null)
+  }
+
+  function closeCurlImport() {
+    setIsCurlImportOpen(false)
+    setCurlImportError(null)
+  }
+
+  function applyCurlImport() {
+    try {
+      const imported = parseCurlCommand(curlImportText)
+      composer.importCurlRequest(imported)
+      setCurlImportWarnings(imported.warnings)
+      setCurlImportError(null)
+      setIsCurlImportOpen(false)
+      setActiveComposerTab(
+        imported.body.mode !== 'none'
+          ? 'body'
+          : imported.headers.length > 0
+            ? 'header'
+            : 'queryParams',
+      )
+    } catch (error) {
+      setCurlImportError(error instanceof Error ? error.message : 'Import failed.')
+    }
   }
 
   function renderAuthFields() {
@@ -486,7 +520,63 @@ export function RequestComposer({ requestId, environment }: RequestComposerProps
           <h3>Execution</h3>
           <p className="subtle">Run the current request directly from the browser.</p>
         </div>
+        <button className="ghost-button" onClick={openCurlImport} type="button">
+          Import cURL
+        </button>
       </div>
+
+      {curlImportWarnings.length > 0 && (
+        <div className="composer-import-feedback" role="status">
+          <strong>Imported with warnings.</strong>
+          <ul>
+            {curlImportWarnings.map((warning) => (
+              <li key={warning}>{warning}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {isCurlImportOpen && (
+        <div
+          aria-label="Import cURL"
+          aria-modal="true"
+          className="composer-import-overlay"
+          role="dialog"
+        >
+          <div className="composer-import-dialog">
+            <div className="section-header">
+              <div>
+                <h3>Import request from cURL</h3>
+                <p className="subtle">
+                  Paste a single cURL command. Postcare will only parse it locally.
+                </p>
+              </div>
+            </div>
+            <label className="stack-field">
+              <span>cURL command</span>
+              <textarea
+                className="textarea"
+                onChange={(event) => setCurlImportText(event.target.value)}
+                placeholder={'curl https://api.example.com/users -H "Content-Type: application/json" --data \'{"name":"Ada"}\''}
+                value={curlImportText}
+              />
+            </label>
+            {curlImportError && (
+              <p className="response-error-state" role="alert">
+                {curlImportError}
+              </p>
+            )}
+            <div className="composer-import-actions">
+              <button className="ghost-button" onClick={closeCurlImport} type="button">
+                Cancel
+              </button>
+              <button className="primary-button" onClick={applyCurlImport} type="button">
+                Apply to composer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="composer-grid">
         <label className="stack-field">

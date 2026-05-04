@@ -183,6 +183,20 @@ Open [http://localhost:5173](http://localhost:5173) in your browser.
 
 ---
 
+## Feature Development Workflow
+
+Use [docs/FEATURE_WORKFLOW.md](/Users/ashwaryjharbade/Projects/postcare/docs/FEATURE_WORKFLOW.md) for the repo's exact end-to-end feature process, including:
+
+- planning in `docs/features/<slug>.json`
+- implementation and testing flow
+- validation command order
+- Codex slash commands
+- local hooks
+- skills
+- subagents
+
+---
+
 ## Project Structure
 
 ```

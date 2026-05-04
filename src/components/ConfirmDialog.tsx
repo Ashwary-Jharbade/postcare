@@ -31,7 +31,7 @@ export function ConfirmDialog({
           <button className="btn-sm btn-cancel" onClick={onCancel}>
             {cancelLabel}
           </button>
-          <button className="btn-sm btn-confirm" onClick={onConfirm}>
+          <button className="btn-sm" onClick={onConfirm}>
             {confirmLabel}
           </button>
         </div>

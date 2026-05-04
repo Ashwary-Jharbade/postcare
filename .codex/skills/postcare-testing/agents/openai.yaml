@@ -1,0 +1,4 @@
+interface:
+  display_name: "Postcare Testing"
+  short_description: "Add and validate Postcare automated tests"
+  default_prompt: "Use $postcare-testing to add coverage, triage failures, and validate this Postcare change."
