@@ -9,6 +9,7 @@ interface CollectionsListViewProps {
   onSelectCollection: (id: string) => void
   onImportSuccess?: () => void
   filterQuery?: string
+  collectionsState?: ReturnType<typeof useCollections>
 }
 
 export function CollectionsListView({
@@ -16,8 +17,10 @@ export function CollectionsListView({
   onSelectCollection,
   onImportSuccess,
   filterQuery = '',
+  collectionsState: externalCollectionsState,
 }: CollectionsListViewProps) {
-  const collections = useCollections()
+  const internalCollections = useCollections()
+  const collections = externalCollectionsState ?? internalCollections
   const importExport = useImportExport()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [isCreating, setIsCreating] = useState(false)
@@ -56,7 +59,10 @@ export function CollectionsListView({
     try {
       await collections.deleteCollection(id)
       if (selectedCollectionId === id) {
-        onSelectCollection(collections.collections[0]?.id || '')
+        // After deleteCollection, the hook has reloaded, but we use
+        // a filtered view of what we know to find the next valid item
+        const remaining = collections.collections.filter((c) => c.id !== id)
+        onSelectCollection(remaining.length > 0 ? remaining[0].id : '')
       }
     } catch (err) {
       console.error('Failed to delete collection:', err)

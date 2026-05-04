@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { database } from '../../lib/storage/db'
 import { type RequestRecord, createId, createTimestamp } from '../../domain/models'
-import { useCollectionRequests } from './useCollectionRequests'
+import { useCollectionRequests, type CollectionRequestsState } from './useCollectionRequests'
 import './RequestListView.css'
 import { useConfirm } from '../../hooks/useConfirm'
 
@@ -10,6 +10,7 @@ interface RequestListViewProps {
   selectedRequestId: string | null
   onSelectRequest: (id: string) => void
   filterQuery?: string
+  requestsState?: CollectionRequestsState & { reload: () => Promise<void> }
 }
 
 export function RequestListView({
@@ -17,8 +18,10 @@ export function RequestListView({
   selectedRequestId,
   onSelectRequest,
   filterQuery = '',
+  requestsState: externalRequestsState,
 }: RequestListViewProps) {
-  const requests = useCollectionRequests(collectionId)
+  const internalRequests = useCollectionRequests(collectionId)
+  const requests = externalRequestsState ?? internalRequests
   const [isCreating, setIsCreating] = useState(false)
   const [newRequestName, setNewRequestName] = useState('')
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -98,12 +101,12 @@ export function RequestListView({
         })
       }
 
+      await requests.reload()
+
       if (selectedRequestId === id) {
         const remaining = requests.requests.filter((r) => r.id !== id)
-        onSelectRequest(remaining[0]?.id || '')
+        onSelectRequest(remaining.length > 0 ? remaining[0].id : '')
       }
-
-      await requests.reload()
     } catch (err) {
       console.error('Failed to delete request:', err)
     }

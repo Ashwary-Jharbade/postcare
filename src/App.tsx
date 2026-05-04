@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { RequestComposer } from './features/requests/RequestComposer'
 import { CollectionsListView } from './features/collections/CollectionsListView'
 import { RequestListView } from './features/collections/RequestListView'
@@ -23,6 +23,47 @@ export function App() {
   const [sidebarFilter, setSidebarFilter] = useState('')
   const [showEnvironmentEditor, setShowEnvironmentEditor] = useState(false)
   const [isHelpOpen, setIsHelpOpen] = useState(false)
+
+  const collections = useMemo(() => collectionsState.collections || [], [collectionsState.collections])
+  const requestsForCollection = useMemo(() => requestsState.requests || [], [requestsState.requests])
+
+  // Auto-select environment
+  useEffect(() => {
+    if (!selectedEnvironmentId && environments.activeEnvironmentId) {
+      setSelectedEnvironmentId(environments.activeEnvironmentId)
+    }
+  }, [selectedEnvironmentId, environments.activeEnvironmentId])
+
+  // Auto-select collection
+  useEffect(() => {
+    if (!selectedCollectionId && collections.length > 0) {
+      setSelectedCollectionId(collections[0]?.id ?? null)
+    }
+    // If selected collection no longer exists, fallback to first
+    if (selectedCollectionId && collections.length > 0 && !collections.find((c) => c.id === selectedCollectionId)) {
+      setSelectedCollectionId(collections[0]?.id ?? null)
+    }
+  }, [selectedCollectionId, collections])
+
+  // Auto-select request when collection has requests but none is selected
+  useEffect(() => {
+    if (!selectedCollectionId || requestsState.isLoading) return
+
+    // If no request is selected and there are requests available, select the first
+    if (!selectedRequestId && requestsForCollection.length > 0) {
+      setSelectedRequestId(requestsForCollection[0]?.id ?? null)
+    }
+
+    // If selected request no longer exists in the collection, clear it
+    if (selectedRequestId && requestsForCollection.length > 0 && !requestsForCollection.find((r) => r.id === selectedRequestId)) {
+      setSelectedRequestId(null)
+    }
+
+    // If the collection is empty, clear the selection
+    if (selectedRequestId && requestsForCollection.length === 0) {
+      setSelectedRequestId(null)
+    }
+  }, [selectedCollectionId, selectedRequestId, requestsForCollection, requestsState.isLoading])
 
   function renderWorkflow() {
     // Show default intro until storage is ready
@@ -60,37 +101,9 @@ export function App() {
       )
     }
 
-    // Auto-select first collection if none selected
-    const collections = collectionsState.collections || []
     const currentCollectionId = selectedCollectionId
     const hasValidSelection = currentCollectionId !== null
     const selectedEnvironment = environments.environments.find((e) => e.id === selectedEnvironmentId)
-
-    // Initialize selected environment if not set
-    if (!selectedEnvironmentId && environments.activeEnvironmentId) {
-      setSelectedEnvironmentId(environments.activeEnvironmentId)
-    }
-
-    // If no collection selected but collections exist, select the first
-    if (!selectedCollectionId && collections.length > 0) {
-      setSelectedCollectionId(collections[0]?.id ?? null)
-    }
-
-    // If a collection is selected but it no longer exists, fallback to first
-    if (selectedCollectionId && !collections.find((c) => c.id === selectedCollectionId)) {
-      setSelectedCollectionId(collections[0]?.id ?? null)
-    }
-
-    // Ensure a request is selected when a collection is selected
-    const requestsForCollection = requestsState.requests || []
-    if (selectedCollectionId && !selectedRequestId && requestsForCollection.length > 0) {
-      setSelectedRequestId(requestsForCollection[0]?.id ?? null)
-    }
-
-    // If selected request no longer exists, clear selection
-    if (selectedRequestId && !requestsForCollection.find((r) => r.id === selectedRequestId)) {
-      setSelectedRequestId(null)
-    }
 
     // Show workflow with docs-style single sidebar and focused main pane
     return (
@@ -142,6 +155,7 @@ export function App() {
               <CollectionsListView
                 selectedCollectionId={currentCollectionId}
                 filterQuery={sidebarFilter}
+                collectionsState={collectionsState}
                 onSelectCollection={(id) => {
                   setSelectedCollectionId(id)
                   setSelectedRequestId(null)
@@ -154,6 +168,7 @@ export function App() {
                 selectedRequestId={selectedRequestId}
                 filterQuery={sidebarFilter}
                 onSelectRequest={setSelectedRequestId}
+                requestsState={requestsState}
               />
             )}
             {sidebarTab === 'environments' && (
