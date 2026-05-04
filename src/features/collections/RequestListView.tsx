@@ -105,7 +105,7 @@ export function RequestListView({
 
       if (selectedRequestId === id) {
         const remaining = requests.requests.filter((r) => r.id !== id)
-        onSelectRequest(remaining.length > 0 ? remaining[0].id : '')
+        onSelectRequest(remaining[0]?.id ?? '')
       }
     } catch (err) {
       console.error('Failed to delete request:', err)

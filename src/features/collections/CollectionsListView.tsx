@@ -62,7 +62,7 @@ export function CollectionsListView({
         // After deleteCollection, the hook has reloaded, but we use
         // a filtered view of what we know to find the next valid item
         const remaining = collections.collections.filter((c) => c.id !== id)
-        onSelectCollection(remaining.length > 0 ? remaining[0].id : '')
+        onSelectCollection(remaining[0]?.id ?? '')
       }
     } catch (err) {
       console.error('Failed to delete collection:', err)
