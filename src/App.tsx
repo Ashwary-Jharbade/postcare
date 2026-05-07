@@ -9,6 +9,9 @@ import { useEnvironments } from './features/environments/useEnvironments'
 import { useCollections } from './features/collections/useCollections'
 import { useCollectionRequests } from './features/collections/useCollectionRequests'
 import { HelpCenter } from './features/help/HelpCenter'
+import { ChatModal } from './features/chat/ChatModal'
+import { type RequestRecord } from './domain/models'
+import { database } from './lib/storage/db'
 import './features/help/HelpCenter.css'
 
 export function App() {
@@ -23,9 +26,24 @@ export function App() {
   const [sidebarFilter, setSidebarFilter] = useState('')
   const [showEnvironmentEditor, setShowEnvironmentEditor] = useState(false)
   const [isHelpOpen, setIsHelpOpen] = useState(false)
+  const [isChatOpen, setIsChatOpen] = useState(false)
+  const [allRequests, setAllRequests] = useState<RequestRecord[]>([])
 
   const collections = useMemo(() => collectionsState.collections || [], [collectionsState.collections])
   const requestsForCollection = useMemo(() => requestsState.requests || [], [requestsState.requests])
+
+  // Load all requests for chat context (re-runs when collections change)
+  useEffect(() => {
+    async function loadAllRequests() {
+      try {
+        const requests = await database.requests.toArray()
+        setAllRequests(requests)
+      } catch {
+        // Silently fail — chat will work without full context
+      }
+    }
+    void loadAllRequests()
+  }, [collections])
 
   // Auto-select environment
   useEffect(() => {
@@ -278,9 +296,22 @@ export function App() {
     )
   }
 
+  const selectedEnvironment = environments.environments.find((e) => e.id === selectedEnvironmentId)
+
   return (
     <>
       {renderWorkflow()}
+      <button
+        type="button"
+        className="chat-fab"
+        onClick={() => setIsChatOpen(true)}
+        aria-label="Open AI chat"
+      >
+        <svg className="chat-fab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
+        </svg>
+        AI Chat
+      </button>
       <button
         type="button"
         className="help-fab"
@@ -289,6 +320,13 @@ export function App() {
       >
         Help
       </button>
+      <ChatModal
+        open={isChatOpen}
+        onClose={() => setIsChatOpen(false)}
+        collections={collections}
+        requests={allRequests}
+        activeEnvironment={selectedEnvironment}
+      />
       <HelpCenter open={isHelpOpen} onClose={() => setIsHelpOpen(false)} />
     </>
   )
