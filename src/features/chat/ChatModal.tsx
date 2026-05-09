@@ -32,7 +32,7 @@ function escapeHtml(text: string): string {
 
 function renderMarkdown(text: string): string {
   // Remove execution tags from display
-  let md = text
+  const md = text
     .replace(/\[EXECUTE_REQUEST:\s*[^\]]+\]/g, '')
     .replace(/\[EXECUTE_COLLECTION:\s*[^\]]+\]/g, '')
     .trim()

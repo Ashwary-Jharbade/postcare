@@ -11,56 +11,64 @@ You are triggered by:
 - `/plan <ticket-number> <high-level description>`
 - `/replan <ticket-number> <updated description or change notes>`
 
+> ⛔ **CRITICAL RULE**: Do not do `git commit` or `git push` and do not even assume HUMAN has asked it in any manner. It should only be used by the defined agent with its specific defined command.
+
 ---
 
-## PHASE 1 — Git Branch Hygiene (for `/plan` only, skip for `/replan`)
+## PHASE 1 — Git Branch Hygiene (`/plan` and `/replan`)
 
-Execute the following steps using the terminal. Do not skip any step.
+Execute using the terminal. The **branch name is exactly `<ticket-number>`** (e.g. ticket `POS-1` → branch `POS-1`). No `feature/` prefix and no description slug.
 
-### Step 1.1 — Check Current Branch
+### Step 1.1 — Resolve base branch name
+Prefer `develop`. If it does not exist locally, use `main` (note this in `control.md` notes if you had to fall back).
+
+### Step 1.2 — Record current branch and compare to ticket
 ```bash
 git branch --show-current
 ```
-Note the branch name. If it is `develop` or `main`, skip to Step 1.4.
+Let `CURRENT` be that value. Let `TICKET_BRANCH` be `<ticket-number>` exactly as given (case-sensitive match to the git branch name).
 
-### Step 1.2 — Check for Uncommitted Changes
+**If `CURRENT` equals `TICKET_BRANCH` (exact string match):**
+1. Run `git status --short` and note any working tree changes (staged, unstaged, untracked).
+2. Run `git log <BASE>..HEAD --oneline` where `<BASE>` is `develop` or `main` (whichever you use). Note commits on this branch not in the base.
+3. **Do not** `git checkout` to the base branch and **do not** create a new branch. Skip the rest of PHASE 1 and continue to the next phase for your command (`/plan` → PHASE 2; `/replan` → read/update existing artefacts per the **/replan Behaviour** section below).
+4. You **must** fold this working tree and commit summary into the plan (see **Local work to assess** in PHASE 3).
+
+**If `CURRENT` does not equal `TICKET_BRANCH`:**
+Continue from Step 1.3.
+
+### Step 1.3 — Uncommitted changes on the wrong branch
 ```bash
 git status --short
 ```
-If there are any changes (staged, unstaged, or untracked):
+If there are any changes (staged, unstaged, or untracked) on `CURRENT` (because you are about to leave this branch):
 
-### Step 1.3 — Stash All Changes Including Untracked
+### Step 1.4 — Stash before leaving the current branch
 ```bash
 git stash push --include-untracked -m "[AI-PIPELINE] <TICKET_NUMBER> — auto-stash before branch switch"
 ```
-Replace `<TICKET_NUMBER>` with the actual ticket number provided.
+Replace `<TICKET_NUMBER>` with the actual ticket number. Confirm with `git stash list | head -3`.
 
-Confirm the stash was created:
+If there were no changes, skip the stash.
+
+### Step 1.5 — Update base and use ticket branch
 ```bash
-git stash list | head -3
+git checkout <BASE>
+git pull origin <BASE>
 ```
 
-### Step 1.4 — Switch to Develop and Pull Latest
-```bash
-git checkout develop
-git pull origin develop
-```
+Then ensure you are on the ticket branch (exact name `<ticket-number>`):
 
-### Step 1.5 — Create Feature Branch
-```bash
-git checkout -b feature/<ticket-number>-<short-kebab-slug>
-```
-Derive `<short-kebab-slug>` from the high-level description (max 4 words, lowercase, hyphens only).
+- If the branch already exists locally: `git checkout <ticket-number>`
+- Otherwise create it from the updated base: `git checkout -b <ticket-number>`
 
-Example: For ticket `CUR-42` and description "Add user profile avatar upload":
-```bash
-git checkout -b feature/CUR-42-user-avatar-upload
-```
+If the branch exists only on the remote after fetch, check it out tracking the remote (e.g. `git fetch origin` then `git checkout <ticket-number>`).
 
-Confirm active branch:
+Confirm:
 ```bash
 git branch --show-current
 ```
+The result must be exactly `<ticket-number>`.
 
 ---
 
@@ -84,6 +92,16 @@ Create the folder and files:
 ```bash
 mkdir -p ai-dev/<ticket-number>
 ```
+
+### Local work to assess (required when PHASE 1 skipped checkout)
+
+When you stayed on `TICKET_BRANCH` because it already matched `<ticket-number>`, **or** whenever there are local commits ahead of `<BASE>` or a non-clean working tree on the ticket branch after PHASE 1:
+
+1. Summarize **uncommitted** paths and intent (or uncertainty) in the plan.
+2. Summarize **commits** on the branch that are not in `<BASE>` (subjects or scope).
+3. State explicitly whether that work **still matches** the ticket and the new plan, should be **folded into** the implementation slices, or is **obsolete / should be reverted** before implementation.
+
+Put this under **section 6. Implementation Plan** as a subsection **### Existing local work (branch state)** (use `N/A — clean branch, aligned with base` if there is nothing local).
 
 ### 3.1 — Write `ai-dev/<ticket-number>/plan.md`
 
@@ -168,7 +186,7 @@ Use the following structure exactly:
 # Control Board: <Ticket Number>
 
 **Ticket**: <Ticket Number>
-**Branch**: feature/<ticket-number>-<slug>
+**Branch**: <ticket-number>
 **Last Updated**: <ISO date>
 
 ---
@@ -233,17 +251,19 @@ After creating both files:
 
 When triggered as `/replan <ticket-number> <change description>`:
 
-1. **Do NOT** run git steps (branch is already set up)
-2. Read existing `ai-dev/<ticket-number>/plan.md` and `control.md`
-3. Understand what changed from the developer's description
+1. Run **PHASE 1 — Git Branch Hygiene** in full. If you are **already on** `<ticket-number>`, do not switch branches; still capture working tree + `git log <BASE>..HEAD` and treat them as input to the replan (see **Local work to assess** in PHASE 3).
+2. Read existing `ai-dev/<ticket-number>/plan.md` and `control.md` (if missing, treat as a fresh plan and follow `/plan` output expectations after writing artefacts).
+3. Merge three sources of truth: the developer's change description, the previous plan, and **any local commits or uncommitted work** on the ticket branch. Call out conflicts, obsolete work, or slices that need to change.
 4. Update `plan.md`:
    - Keep original sections but update affected areas
+   - Refresh **### Existing local work (branch state)** so it reflects the current repo after PHASE 1
    - Add a row to the **Change Log** table with the change and reason
    - If slices change, renumber/restructure them
    - Reset any affected slice checkboxes to unchecked
 5. Update `control.md`:
    - Set `Planning` status back to `planning`
    - Set `Plan Approved` back to `not-approved`
+   - Set **Branch** to `<ticket-number>` (exact)
    - Add a note in the Decision Log
 6. Inform the developer:
    > "🔄 Plan updated. Re-approval required before `/develop` can proceed."
@@ -253,6 +273,7 @@ When triggered as `/replan <ticket-number> <change description>`:
 ## Error Handling
 
 - If git stash fails: warn the developer and stop. Do not switch branches.
-- If `develop` branch doesn't exist: try `main`, warn the developer.
+- If `develop` branch doesn't exist: try `main` for `<BASE>`, warn the developer.
+- If `git log develop..HEAD` fails because `develop` has no common history yet, use `git merge-base` / first-parent range sparingly or note in the plan that the branch diverged unusually.
 - If ticket folder already exists with a plan: ask if this is a replan — if yes, proceed as `/replan`; if no, confirm overwrite.
 - If description is too vague to plan: write what you can, list specific clarification questions in Section 8, and set planning status to `needs-clarification`.

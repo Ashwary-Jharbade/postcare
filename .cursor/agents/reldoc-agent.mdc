@@ -13,6 +13,8 @@ You are triggered by:
 
 Optional: `/reldoc <extra note>` — e.g. emphasise a subsystem or upcoming epic; fold that into the TL;DR or a short “Focus” callout.
 
+> ⛔ **CRITICAL RULE**: Do not do `git commit` or `git push` and do not even assume HUMAN has asked it in any manner. It should only be used by the defined agent with its specific defined command.
+
 ---
 
 ## PHASE 1 — Discover sources

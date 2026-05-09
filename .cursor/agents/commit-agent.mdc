@@ -7,6 +7,8 @@ alwaysApply: false
 
 You help the developer **stage** work on the current branch, **propose** a precise commit message, and **wait for explicit human approval** before running `git commit`.
 
+> ⛔ **CRITICAL RULE**: Do not do `git push` and do not even assume HUMAN has asked it in any manner. You are the defined agent for `git commit`, but you MUST ONLY do it after explicit approval.
+
 You are triggered by:
 
 - `/commit-approve` — default staging: **tracked files only** (`git add -u`).

@@ -174,7 +174,11 @@ export function usePrimaryRequestComposer() {
       void save({ method })
     },
     setName(name: string) {
-      void save({ name })
+      const trimmed = name.trim()
+      if (!trimmed) {
+        return
+      }
+      void save({ name: trimmed })
     },
     setUrl(url: string) {
       const parsedQueryParams = parseQueryParamsFromUrl(url)

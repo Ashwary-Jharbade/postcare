@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   type AuthType,
   type HttpMethod,
@@ -64,6 +64,23 @@ export function RequestComposer({ requestId, environment }: RequestComposerProps
   const [curlImportText, setCurlImportText] = useState('')
   const [curlImportError, setCurlImportError] = useState<string | null>(null)
   const [curlImportWarnings, setCurlImportWarnings] = useState<string[]>([])
+  const [nameDraft, setNameDraft] = useState('')
+  const [nameError, setNameError] = useState<string | null>(null)
+
+  const readyRequest =
+    composer.state.status === 'ready' && requestId != null && composer.state.request.id === requestId
+      ? composer.state.request
+      : null
+
+  useEffect(() => {
+    if (!readyRequest) {
+      return
+    }
+    setNameDraft(readyRequest.name)
+    setNameError(null)
+    // Intentionally omit readyRequest: sync when persisted id/name/updatedAt change, not on every request object reference change.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- narrow deps avoid resetting the draft on unrelated field saves
+  }, [readyRequest?.id, readyRequest?.name, readyRequest?.updatedAt])
 
   function updateFieldRows(
     rows: KeyValueEntry[],
@@ -620,10 +637,37 @@ export function RequestComposer({ requestId, environment }: RequestComposerProps
         <label className="stack-field">
           <span>Name</span>
           <input
+            aria-invalid={nameError != null}
+            aria-label="Request name"
             className="input"
-            onChange={(event) => composer.setName(event.target.value)}
-            value={request.name}
+            onBlur={() => {
+              const trimmed = nameDraft.trim()
+              if (!trimmed) {
+                setNameDraft(request.name)
+                setNameError('Name cannot be empty.')
+                return
+              }
+              setNameError(null)
+              if (trimmed !== request.name) {
+                composer.setName(trimmed)
+              }
+            }}
+            onChange={(event) => {
+              setNameDraft(event.target.value)
+              setNameError(null)
+            }}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter') {
+                event.currentTarget.blur()
+              }
+            }}
+            value={nameDraft}
           />
+          {nameError ? (
+            <span className="field-error-text" role="alert">
+              {nameError}
+            </span>
+          ) : null}
         </label>
       </div>
 

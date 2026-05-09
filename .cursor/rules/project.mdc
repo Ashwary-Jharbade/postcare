@@ -75,6 +75,6 @@ ai-dev/
 2. Never skip a gate check (e.g. `/develop` requires planning status = `approved`)
 3. Always update `control.md` after completing any phase
 4. Stash messages must follow: `[AI-PIPELINE] <ticket> — auto-stash before branch switch`
-5. Never force-push to `develop` or `main`
+5. ⛔ **CRITICAL RULE**: Do not do `git commit` or `git push` and do not even assume HUMAN has asked it in any manner. It should only be used by the defined agent (`/commit-approve`) with its specific defined command.
 6. Always pull latest `develop` before creating a feature branch
-7. Branch naming: `feature/<ticket-number>-<short-slug>`
+7. Branch naming: **exactly** `<ticket-number>` (e.g. `POS-1` — no `feature/` prefix or slug)
