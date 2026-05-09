@@ -111,6 +111,13 @@ body {
   color: var(--text-secondary);
 }
 
+.field-error-text {
+  display: block;
+  margin-top: 0.35rem;
+  font-size: 0.8rem;
+  color: var(--danger-text);
+}
+
 .subtle {
   margin-top: 0.65rem !important;
   color: var(--text-muted) !important;

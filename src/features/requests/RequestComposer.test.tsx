@@ -1,36 +1,44 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi, beforeEach } from 'vitest'
-import { createDefaultRequest } from '../../domain/models'
 import { RequestComposer } from './RequestComposer'
 
 const importCurlRequest = vi.fn()
 
-vi.mock('./useRequestComposer', () => ({
-  useRequestComposer: () => ({
-    state: {
-      status: 'ready',
-      request: createDefaultRequest(),
-      saveState: 'idle',
-      saveMessage: 'Ready',
-    },
-    setHeaders: vi.fn(),
-    setQueryParams: vi.fn(),
-    setAuth: vi.fn(),
-    setAuthConfig: vi.fn(),
-    setName: vi.fn(),
-    setMethod: vi.fn(),
-    setUrl: vi.fn(),
-    setBodyMode: vi.fn(),
-    setBodyContentType: vi.fn(),
-    setBodyContent: vi.fn(),
-    setFormData: vi.fn(),
-    setBody: vi.fn(),
-    importCurlRequest,
-    addHeaderRow: vi.fn(),
-    addQueryParamRow: vi.fn(),
-  }),
+const { mockSetName } = vi.hoisted(() => ({
+  mockSetName: vi.fn(),
 }))
+
+vi.mock('./useRequestComposer', async () => {
+  const { createDefaultRequest } = await import('../../domain/models')
+  const request = { ...createDefaultRequest(), id: 'req_1', name: 'Untitled Request' }
+
+  return {
+    useRequestComposer: () => ({
+      state: {
+        status: 'ready',
+        request,
+        saveState: 'idle',
+        saveMessage: 'Ready',
+      },
+      setHeaders: vi.fn(),
+      setQueryParams: vi.fn(),
+      setAuth: vi.fn(),
+      setAuthConfig: vi.fn(),
+      setName: mockSetName,
+      setMethod: vi.fn(),
+      setUrl: vi.fn(),
+      setBodyMode: vi.fn(),
+      setBodyContentType: vi.fn(),
+      setBodyContent: vi.fn(),
+      setFormData: vi.fn(),
+      setBody: vi.fn(),
+      importCurlRequest,
+      addHeaderRow: vi.fn(),
+      addQueryParamRow: vi.fn(),
+    }),
+  }
+})
 
 vi.mock('./useRequestExecution', () => ({
   useRequestExecution: () => ({
@@ -74,6 +82,7 @@ vi.mock('./AiAssistPanel', () => ({
 describe('RequestComposer cURL import', () => {
   beforeEach(() => {
     importCurlRequest.mockReset()
+    mockSetName.mockReset()
   })
 
   it('opens the import dialog and applies parsed cURL fields to the composer', async () => {
@@ -131,5 +140,42 @@ describe('RequestComposer cURL import', () => {
     expect(
       screen.getByText('Ignored unsupported cURL flag "--compressed".'),
     ).toBeInTheDocument()
+  })
+})
+
+describe('RequestComposer request name', () => {
+  beforeEach(() => {
+    mockSetName.mockReset()
+  })
+
+  function getNameInput() {
+    const region = screen.getByRole('region', { name: 'request composer' })
+    return within(region).getByLabelText('Request name')
+  }
+
+  it('reverts an empty name on blur and does not call setName', async () => {
+    const user = userEvent.setup()
+    render(<RequestComposer requestId="req_1" />)
+
+    const nameInput = getNameInput()
+    await user.clear(nameInput)
+    await user.tab()
+
+    expect(nameInput).toHaveValue('Untitled Request')
+    expect(mockSetName).not.toHaveBeenCalled()
+    const region = screen.getByRole('region', { name: 'request composer' })
+    expect(within(region).getByRole('alert')).toHaveTextContent('Name cannot be empty.')
+  })
+
+  it('trims and saves a non-empty name on blur', async () => {
+    const user = userEvent.setup()
+    render(<RequestComposer requestId="req_1" />)
+
+    const nameInput = getNameInput()
+    await user.clear(nameInput)
+    await user.type(nameInput, '  My API  ')
+    await user.tab()
+
+    expect(mockSetName).toHaveBeenCalledWith('My API')
   })
 })

@@ -77,3 +77,63 @@ describe('useRequestComposer importCurlRequest', () => {
     })
   })
 })
+
+describe('useRequestComposer setName', () => {
+  beforeEach(() => {
+    mockGet.mockReset()
+    mockPut.mockReset()
+  })
+
+  it('does not persist empty or whitespace-only names', async () => {
+    const existingRequest = createLoadedRequest()
+    mockGet.mockImplementation(async () => existingRequest)
+    mockPut.mockResolvedValue(undefined)
+
+    const { result } = renderHook(() => useRequestComposer(existingRequest.id))
+
+    await waitFor(() => {
+      expect(result.current.state.status).toBe('ready')
+    })
+
+    const putCountAfterLoad = mockPut.mock.calls.length
+
+    act(() => {
+      result.current.setName('')
+      result.current.setName('   ')
+      result.current.setName('\t')
+    })
+
+    await waitFor(() => {
+      expect(result.current.state.status).toBe('ready')
+    })
+
+    expect(mockPut.mock.calls.length).toBe(putCountAfterLoad)
+    expect(result.current.state.status).toBe('ready')
+    if (result.current.state.status === 'ready') {
+      expect(result.current.state.request.name).toBe(existingRequest.name)
+    }
+  })
+
+  it('trims and saves a non-empty name', async () => {
+    const existingRequest = createLoadedRequest()
+    mockGet.mockImplementation(async () => existingRequest)
+    mockPut.mockResolvedValue(undefined)
+
+    const { result } = renderHook(() => useRequestComposer(existingRequest.id))
+
+    await waitFor(() => {
+      expect(result.current.state.status).toBe('ready')
+    })
+
+    act(() => {
+      result.current.setName('  Renamed  ')
+    })
+
+    await waitFor(() => {
+      expect(mockPut).toHaveBeenCalled()
+    })
+
+    const savedRequest = mockPut.mock.calls.at(-1)?.[0] as RequestRecord
+    expect(savedRequest.name).toBe('Renamed')
+  })
+})
