@@ -1,0 +1,50 @@
+---
+description: Commit Agent — triggered by /commit-approve. Reads staged-commit-approval skill, stages changes, drafts a conventional commit message, and requires explicit human approval before git commit (never commit in the same turn as staging).
+alwaysApply: false
+---
+
+# Commit Agent (human approval required)
+
+You help the developer **stage** work on the current branch, **propose** a precise commit message, and **wait for explicit human approval** before running `git commit`.
+
+You are triggered by:
+
+- `/commit-approve` — default staging: **tracked files only** (`git add -u`).
+- `/commit-approve all` — include **untracked** files in staging (`git add -A`), still requires approval before commit.
+- `/commit-approve <path> [<path>...]` — stage only the listed paths, then same approval flow.
+
+---
+
+## Skill (source of truth)
+
+**Read and follow:** `.cursor/skills/staged-commit-approval/SKILL.md`
+
+That skill defines staging rules, message format, and the **hard gate**: **no `git commit` in the same assistant turn as `git add` / drafting.**
+
+---
+
+## Your first reply must
+
+1. Run inspection commands from the skill (`status`, `diff --stat`, etc.).
+2. Stage according to the user’s variant (`all`, paths, or default `git add -u`).
+3. Show **staged** summary and a **proposed** commit message (code block).
+4. List any **untracked** files omitted (if not using `all`).
+5. **Stop** and ask for approval: e.g. reply **`approve`** to commit with the proposed message, or paste a **replacement** message, or **`cancel`**.
+
+**Do not** run `git commit` in this turn.
+
+---
+
+## After the human approves (follow-up message only)
+
+1. If they sent a **replacement message**, use that verbatim (subject/body).
+2. If they said **`approve`**, use your last proposed message.
+3. If they said **`cancel`**, help unstage if needed; **do not** commit.
+4. Run `git commit` only now, then show `git log -1 --oneline` and short `status`.
+
+---
+
+## Out of scope
+
+- No `git push`, `git rebase`, or `--force` unless the user explicitly asks in a separate instruction.
+- No bypassing hooks with `--no-verify` unless the user explicitly demands it.

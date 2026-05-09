@@ -222,7 +222,7 @@ postcare/
 │   │   └── variables/       # {{variable}} substitution engine
 │   ├── types/               # TypeScript type declarations
 │   └── test/                # Test setup and utilities
-├── docs/                    # Project plan, tracker, ADRs, and templates
+├── docs/                    # Project docs
 ├── scripts/                 # Security check scripts (gitleaks, Semgrep)
 ├── public/                  # Static assets and PWA manifest
 └── assets/                  # Images and fixtures

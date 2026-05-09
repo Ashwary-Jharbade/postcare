@@ -1,4 +1,0 @@
-interface:
-  display_name: "Postcare Feature Workflow"
-  short_description: "Plan and implement tracked Postcare feature work"
-  default_prompt: "Use $postcare-feature-workflow to plan, implement, test, and track this Postcare change."

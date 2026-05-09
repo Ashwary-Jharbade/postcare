@@ -1,0 +1,65 @@
+{
+  "agent": {
+    "customAgents": [
+      {
+        "name": "Plan Agent",
+        "description": "React Planning Agent — sets up git branch, reads the project, and generates plan.md + control.md for a ticket",
+        "agentFile": ".cursor/agents/plan-agent.mdc",
+        "slashCommands": ["/plan", "/replan"]
+      },
+      {
+        "name": "Develop Agent",
+        "description": "React Development Agent — implements an approved plan slice by slice and tracks progress in development.md",
+        "agentFile": ".cursor/agents/develop-agent.mdc",
+        "slashCommands": ["/develop"]
+      },
+      {
+        "name": "Test Agent",
+        "description": "React Test Agent — generates unit and integration tests, runs them, and reports results in testcases.md",
+        "agentFile": ".cursor/agents/test-agent.mdc",
+        "slashCommands": ["/test"]
+      },
+      {
+        "name": "Review Agent",
+        "description": "React Review Agent — reviews all branch changes against the plan and React best practices, outputs a structured review report",
+        "agentFile": ".cursor/agents/review-agent.mdc",
+        "slashCommands": ["/review"]
+      },
+      {
+        "name": "Impact Agent",
+        "description": "React Impact Agent — analyses branch changes against develop to surface side effects, regression risks, shared code blast radius, and merge confidence rating before a PR is raised",
+        "agentFile": ".cursor/agents/impact-agent.mdc",
+        "slashCommands": ["/impact"]
+      },
+      {
+        "name": "Document Agent",
+        "description": "Document Agent — writes clear, layperson-friendly documentation for a feature or ticket and saves it to ai-dev/<ticket-number>/documentation.md",
+        "agentFile": ".cursor/agents/document-agent.mdc",
+        "slashCommands": ["/document"]
+      },
+      {
+        "name": "PR Description Agent",
+        "description": "PR Description Agent — generates a structured pull request title and body from plan.md, ticket artefacts, and git diff; saves to ai-dev/<ticket-number>/pr-description.md",
+        "agentFile": ".cursor/agents/prdoc-agent.mdc",
+        "slashCommands": ["/prdoc"]
+      },
+      {
+        "name": "Release Doc Agent",
+        "description": "Release Doc Agent — merges per-ticket documentation.md files into ai-doc/PROJECT_CONTEXT.md for token-efficient AI orientation",
+        "agentFile": ".cursor/agents/reldoc-agent.mdc",
+        "slashCommands": ["/reldoc"]
+      },
+      {
+        "name": "Commit Agent",
+        "description": "Commit Agent — stages branch changes, drafts a conventional commit message, and requires explicit human approval before git commit (see staged-commit-approval skill)",
+        "agentFile": ".cursor/agents/commit-agent.mdc",
+        "slashCommands": ["/commit-approve"]
+      }
+    ]
+  },
+  "rules": {
+    "files": [
+      ".cursor/rules/project.mdc"
+    ]
+  }
+}

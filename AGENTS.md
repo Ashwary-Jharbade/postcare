@@ -1,52 +1,59 @@
-# Repository Guidelines
+# Postcare: Local-First API Client
 
-## Project Structure & Module Organization
-This repository is currently in setup. Keep the root minimal and organize work so both humans and AI agents can navigate it quickly:
+Postcare is a privacy-focused, offline-capable API client built for developers. It prioritizes local storage and security, ensuring that sensitive request data never leaves the user's device unless explicitly intended.
 
-- `src/` for application code
-- `tests/` for automated tests
-- `docs/` for design notes and operational runbooks
-- `docs/adr/` for architecture decision records
-- `docs/templates/` for reusable spec, threat-model, and bug-report templates
-- `assets/` for static files such as images or fixtures
+## 🚀 Quick Start
 
-Prefer feature-based grouping inside `src/` (for example, `src/auth/` or `src/posts/`) over large utility dumps.
-Use [docs/TRACKER.md](/Users/ashwaryjharbade/Projects/postcare/docs/TRACKER.md) as the live status board for completed and pending work.
+- **Development:** `npm run dev`
+- **Build:** `npm run build`
+- **Test:** `npm run test`
+- **Lint:** `npm run lint`
+- **Type-Check:** `npm run typecheck`
+- **Security Check:** `npm run security:all`
 
-## Build, Test, and Development Commands
-There are no standard project commands defined yet. When introducing a runtime or framework, add the primary developer commands to the repository root config and document them in `README.md`.
+## 🛠 Tech Stack
 
-Expected command shape:
+- **Framework:** React 19 + TypeScript
+- **Build Tool:** Vite 6
+- **Storage:** IndexedDB via [Dexie.js](https://dexie.org/)
+- **Styling:** Vanilla CSS with design tokens
+- **Testing:** Vitest + Testing Library
+- **Security:** `gitleaks`, `Semgrep`, `npm audit`
 
-- `make dev` or `npm run dev` for local development
-- `make test` or `npm test` for the full test suite
-- `make lint` or `npm run lint` for static checks
-- `make build` or `npm run build` for production artifacts
+## 🏗 Architecture & Directory Structure
 
-Choose one command surface and keep it consistent. Every new setup step must also be reflected in `docs/PROJECT_PLAN.md` or `README.md`.
+The project follows a feature-based organization combined with a core library for business logic.
 
-## Coding Style & Naming Conventions
-Use 2 spaces for Markdown, YAML, JSON, and frontend assets; use 4 spaces for Python if Python is added. Prefer descriptive, lowercase directory names and language-idiomatic file names such as `kebab-case.ts`, `snake_case.py`, or `PascalCase.tsx` for React components.
+- `src/domain/`: Core data models and type definitions (`models.ts`).
+- `src/features/`: High-level feature modules (UI + logic).
+  - `collections/`: Management of request groups and import/export.
+  - `environments/`: Environment variables and substitution UI.
+  - `requests/`: Request Composer, execution logic, and diagnostics.
+- `src/lib/`: Reusable, logic-heavy utilities.
+  - `ai/`: AI assistant integration with secret redaction.
+  - `variables/`: The `{{variable}}` substitution engine.
+  - `storage/`: Dexie database schema and migrations.
+  - `codegen/`: Snippet generation (cURL, Fetch, etc.).
+- `src/components/` & `src/hooks/`: Shared UI primitives and React hooks.
+- `docs/`: Project planning, feature workflows, and ADRs.
 
-Adopt a formatter and linter early and run them before opening a PR. Typical choices are Prettier and ESLint for JavaScript/TypeScript or Ruff for Python. Keep schemas, storage models, and security-sensitive utilities strongly typed and documented.
+## ⚖️ Development Conventions
 
-## Testing Guidelines
-Place tests under `tests/` or beside source files using the framework’s standard pattern, such as `*.test.ts` or `test_*.py`. Cover new behavior and regressions introduced by each change. Do not merge features without automated tests unless the change is purely documentation or repository metadata.
+### Coding Style
+- **TypeScript First:** Maintain strict type safety. Avoid `any`.
+- **Vanilla CSS:** Use CSS variables (design tokens) found in `src/styles.css`.
+- **Functional Components:** Use React 19 patterns and hooks.
+- **Atomic Commits:** Keep changes focused and prefixed (e.g., `feat:`, `fix:`, `test:`).
 
-Include security, migration, and offline behavior tests for platform-level features. AI-generated code must be verified with the same test standards as hand-written code.
+### Testing & Quality
+- **Unit Testing:** Mandatory for new logic in `src/lib` and `src/features`.
+- **Empirical Reproduction:** Always reproduce bugs with a test case before fixing.
+- **Security First:** Never log raw secrets. Use `src/lib/redaction` for safe logging/AI flows.
 
-## Security & Dependency Rules
-This project has a strict open-source-only dependency rule. Use only open source packages and tools with active maintenance, acceptable licenses, and clear security posture.
+### Feature Workflow
+For end-to-end development instructions, refer to `docs/FEATURE_WORKFLOW.md`. It covers planning, implementation, and validation sequences.
 
-Never commit secrets, sample tokens, or raw authorization headers. Redact sensitive values in logs, exports, test fixtures, screenshots, and AI prompts. Any new dependency should be justified in docs and reviewed for security impact before adoption.
-
-## AI-Agent Workflow
-Document architecture, acceptance criteria, and constraints before major implementation work. Keep tasks small so AI-generated changes are reviewable, testable, and reversible.
-
-Use Codex for implementation, repo search, refactors, review passes, and documentation upkeep, but keep every change traceable to a checklist item or documented task. Update `docs/TRACKER.md` whenever work is started or completed.
-Do not begin requirement development after setup milestones are complete until the user explicitly approves that transition.
-
-## Commit & Pull Request Guidelines
-There is no commit history yet, so use imperative, scoped commit messages such as `feat: add post scheduling model` or `docs: add contributor guide`. Keep commits focused.
-
-Pull requests should include a short summary, testing notes, linked issues, and documentation updates when applicable. Add screenshots or sample output for UI or CLI changes. If you introduce new tooling, document setup steps, security considerations, and package rationale in the PR and update this guide once the convention is settled.
+## 🔒 Security Mandates
+- **Local-Only:** No cloud syncing or telemetry. Data must persist in IndexedDB.
+- **Secret Masking:** Variables marked as 'secret' must be masked in the UI.
+- **Redaction:** Before sending any data to AI providers, use the redaction engine to strip sensitive values.
