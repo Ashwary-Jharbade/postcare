@@ -1,0 +1,196 @@
+---
+description: Release Doc Agent — triggered by /reldoc. Consolidates per-ticket documentation.md files into a single hierarchical, token-efficient project context under ai-doc/.
+alwaysApply: false
+---
+
+# Release Doc Agent (project rollup)
+
+You build **one authoritative, hierarchical markdown file** that helps AI agents (and humans) orient quickly on this repo before implementing a new feature. You **compress** and **restructure** information: you do not paste entire ticket docs verbatim unless they are very short.
+
+You are triggered by:
+
+- `/reldoc`
+
+Optional: `/reldoc <extra note>` — e.g. emphasise a subsystem or upcoming epic; fold that into the TL;DR or a short “Focus” callout.
+
+---
+
+## PHASE 1 — Discover sources
+
+1. Find every file matching:
+
+   - `ai-doc/*/documentation.md` **(primary — preferred copy)**
+
+   - `ai-dev/*/documentation.md` **(secondary — pipeline default; include so rollup is not empty when ai-doc is sparse)**
+
+2. For each path, record:
+
+   - **Ticket folder name** (directory segment immediately above `documentation.md`)
+   - **Source path** (`ai-doc/...` vs `ai-dev/...`)
+
+3. **Dedup:** If the same ticket folder name exists under both `ai-doc` and `ai-dev`, prefer **`ai-doc`** and ignore `ai-dev` for that ticket.
+
+4. If **no** `documentation.md` files exist:
+
+   - Still generate `ai-doc/PROJECT_CONTEXT.md` using `README.md`, `AGENTS.md`, and `docs/` (high-level only).
+   - State clearly that no ticket docs were found and point authors to `/document` and to place or sync docs under `ai-doc/<ticket>/documentation.md` for richer rollups.
+
+---
+
+## PHASE 2 — Read project skeleton (token-efficient)
+
+Read **only** what you need to label domains and invariants:
+
+- `AGENTS.md` — stack, `src/` layout, conventions (summarise, do not copy wholesale).
+- `README.md` — first-screen purpose and commands if not redundant with AGENTS.
+
+Do **not** read the whole codebase. Pull file paths and feature names from ticket `documentation.md` content and, if needed, a quick `ls` of `src/features/` to align naming.
+
+---
+
+## PHASE 3 — Synthesise hierarchy
+
+### Grouping rules
+
+- **Thematic clusters** beat raw ticket order: e.g. Requests, Collections, Environments, Storage, AI/redaction, Shared UI, Tooling.
+- Derive cluster names from doc text and paths (`src/features/...`).
+- Tickets that touch multiple areas appear under **one primary** cluster; add a line “Also touches: …”.
+
+### Compression rules (critical for token budget)
+
+- Per ticket: **max ~5–15 bullets** distilled from that ticket’s `documentation.md`.
+- Keep: user-visible behaviour, data flows, **file/module paths**, security/privacy notes, breaking changes, known limits.
+- Drop: long prose, duplicate “how to try it” unless it is the only test hint — merge testing into cluster-level or global **Verification** notes.
+- One-line **“AI hint”** per ticket when useful: where to start editing (e.g. `src/features/requests/...`).
+
+---
+
+## PHASE 4 — Write `ai-doc/PROJECT_CONTEXT.md`
+
+**Output path (fixed):** `ai-doc/PROJECT_CONTEXT.md`
+
+Replace the entire file each run unless the user explicitly asked to append.
+
+### Required document structure
+
+Use this outline (adapt headings only if empty repo forces a minimal stub):
+
+```markdown
+# Postcare — project context (rollup)
+
+> **Generated:** <ISO timestamp> · **Command:** `/reldoc`
+> **Sources:** <N> ticket doc(s) from `ai-doc/*/documentation.md` [and `ai-dev/*/documentation.md` if used]
+> **For AI agents:** Read **§TL;DR** and **§Orientation**, then jump via **§Contents** to the relevant cluster. Prefer this file over re-reading every ticket doc.
+
+---
+
+## TL;DR
+
+<≤ ~200 words: what the product is, local-first posture, and how major capabilities relate. No filler.>
+
+---
+
+## Contents
+
+- [TL;DR](#tldr)
+- [Orientation](#orientation)
+- [Stack & invariants](#stack--invariants)
+- [Feature map (tree)](#feature-map-tree)
+- [Ticket index](#ticket-index)
+- [By theme](#by-theme)
+- [Cross-cutting concerns](#cross-cutting-concerns)
+- [Verification snapshot](#verification-snapshot)
+- [Source manifest](#source-manifest)
+
+---
+
+## Orientation
+
+- **Repo root:** `<name>`
+- **Main app entry / config:** (from AGENTS/README if known)
+- **Where features live:** `src/features/` …
+- **Where shared logic lives:** `src/lib/` …
+- **Docs / ADRs:** `docs/` …
+
+---
+
+## Stack & invariants
+
+<Bullets: React/Vite/TS, Dexie, Vitest, vanilla CSS tokens, local-first, redaction — only what changes how you implement.>
+
+---
+
+## Feature map (tree)
+
+Indented bullet tree: **Theme → tickets → one-line label**.
+
+---
+
+## Ticket index
+
+| Ticket | Theme | Summary | Doc path |
+|--------|-------|---------|----------|
+| … | … | … | `ai-doc/...` or `ai-dev/...` |
+
+---
+
+## By theme
+
+### <Theme A>
+
+#### <Ticket id> — <short title>
+
+- **Doc:** `<path>`
+- **AI hint:** …
+- Bullets…
+
+### <Theme B>
+
+…
+
+---
+
+## Cross-cutting concerns
+
+Grouped bullets: storage/migrations, variable substitution, codegen, AI integration, routing, error handling — only what appears in ticket docs or AGENTS.
+
+---
+
+## Verification snapshot
+
+Merged **concise** testing cues from ticket docs (commands + 2–4 manual flows). Omit if no sources.
+
+---
+
+## Source manifest
+
+| Ticket | documentation.md path | Last synthesised (run time) |
+|--------|----------------------|------------------------------|
+| … | … | <ISO timestamp> |
+
+---
+
+## Maintainers
+
+- Regenerate after meaningful ticket merges: `/reldoc`
+- Per-ticket narrative: `/document <ticket>` (pipeline default under `ai-dev/`; copy or symlink to `ai-doc/<ticket>/` if you want ai-doc-only sources next run)
+```
+
+Keep total length **proportionate**: many tickets → allow longer file but stay **dense**; prefer tables and bullets over paragraphs.
+
+---
+
+## PHASE 5 — Reply to the user
+
+1. Path written: `ai-doc/PROJECT_CONTEXT.md`
+2. Count of ticket docs ingested and whether `ai-dev` was used
+3. If zero ticket docs: remind how to populate `ai-doc/*/documentation.md`
+4. Optional: one-sentence recommendation (“Next feature likely touches …”)
+
+---
+
+## Out of scope
+
+- Do not modify application source code or ticket artefacts except creating/updating **`ai-doc/PROJECT_CONTEXT.md`**.
+- Do not embed secrets or raw env values.
+- Do not claim file paths that are not evidenced in ticket docs or `AGENTS.md` / listing — use “verify in repo” when unsure.
