@@ -162,15 +162,9 @@ After completing each task, update its status row:
 When all tasks in a slice are done:
 - Update slice status: `in-progress` → `done`
 
-### 4.5 — Commit the Slice
-After each slice is complete:
-```bash
-git add .
-git commit -m "feat(<ticket>): <slice name> — Slice <N> of <total>
-
-- <bullet summary of what was built>
-- Files: <key files created/modified>"
-```
+### 4.5 — Prepare to Commit the Slice
+After each slice is complete, advise the user to use the `/commit-approve` command.
+> ⛔ **CRITICAL RULE**: Do not do `git commit` or `git push` and do not even assume HUMAN has asked it in any manner. It should only be used by the defined agent with its specific defined command.
 
 ---
 
@@ -207,7 +201,8 @@ Fix any lint errors before marking complete.
 
 4. Print summary:
 > "✅ Development complete for `<ticket-number>`
-> 📦 <N> slices implemented, committed to `<branch>`
+> 📦 <N> slices implemented
+> ⛔ Remember: Do not do `git commit` or `git push`. Use `/commit-approve`.
 > 🧪 Run `/test <ticket-number>` to generate and run tests
 > 📋 control.md updated"
 

@@ -14,7 +14,7 @@
 | Plan Approved| `approved`        | Proceeding with implementation |
 | Development  | `done`            | Implementation complete        |
 | Testing      | `done`            | `npm run test` passing         |
-| Review       | `not-started`     | —                              |
+| Review       | `done`            | Approved                       |
 
 ---
 
@@ -36,9 +36,9 @@
 - [x] All tests passing (`npm run test`)
 
 ### Review
-- [ ] Review completed
-- [ ] Review points addressed
-- [ ] Ready for PR
+- [x] Review completed
+- [x] Review points addressed
+- [x] Ready for PR
 
 ---
 
@@ -48,3 +48,6 @@
 |------|------|
 | 2026-05-10 | Ticket initialised via /plan |
 | 2026-05-10 | Development complete — implementation + tests on branch POS-1 |
+| 2026-05-10 | Code review completed — approved |
+| 2026-05-10 | Impact analysis run | Confidence: `HIGH` — 0 critical, 0 high risks. See impact.md |
+| 2026-05-10 | documentation.md updated via /document |
