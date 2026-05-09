@@ -29,10 +29,10 @@
 ### Development
 - [x] development.md created
 - [x] All slices implemented
-- [ ] Code committed to branch
+- [x] Code committed to branch
 
 ### Testing
-- [ ] testcases.md created
+- [x] testcases.md created
 - [x] All tests passing (`npm run test`)
 
 ### Review

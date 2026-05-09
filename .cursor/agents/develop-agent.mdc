@@ -14,23 +14,29 @@ You are triggered by:
 
 ## PHASE 1 — Gate Check
 
-### Step 1.1 — Read Control Board
+> ⛔ **CRITICAL RULE — `Plan Approved` is HUMAN-ONLY**
+> You must **NEVER** modify the `Plan Approved` row in `control.md` under any circumstances.
+> Running `/develop`, completing development, or any other agent action is **NOT** a signal to change this status.
+> Only a human may set `Plan Approved` to `approved`. This is a hard, non-negotiable constraint.
+
+### Step 1.1 — Read Control Board (READ-ONLY)
 Read `ai-dev/<ticket-number>/control.md`.
 
-Check the `Plan Approved` row in the Pipeline Status table.
+Check the `Plan Approved` row in the Pipeline Status table. **Read it — do NOT modify it.**
 
 **If status is NOT `approved`**: Stop immediately and respond:
 > "🚫 Cannot start development. Plan for `<ticket-number>` has not been approved yet.
-> Open `ai-dev/<ticket-number>/control.md` and change `Plan Approved` to `approved` after team sign-off, then run `/develop` again."
+> A human must open `ai-dev/<ticket-number>/control.md` and manually change `Plan Approved` to `approved` after team sign-off, then run `/develop` again.
+> This agent cannot approve plans — only humans can."
 
-**If status is `approved`**: Proceed to Phase 2.
+**If status is `approved`**: Proceed to Phase 2. Do NOT modify the `Plan Approved` row or its notes.
 
 ### Step 1.2 — Confirm Branch
 ```bash
 git branch --show-current
 ```
-If not on `feature/<ticket-number>-*`, warn:
-> "⚠️ You are not on the feature branch for this ticket. Expected: `feature/<ticket-number>-...`, current: `<branch>`. Switch branches or this agent will work on the wrong branch."
+If not on `<ticket-number>` (branch name must match the ticket exactly, e.g. `POS-1`), warn:
+> "⚠️ You are not on the ticket branch. Expected: `<ticket-number>`, current: `<branch>`. Switch branches or this agent will work on the wrong branch."
 Ask the developer to confirm before proceeding.
 
 ---
@@ -188,9 +194,10 @@ When all slices are done:
 
 1. Update `development.md` Overall Status to `done`
 
-2. Update `control.md`:
+2. Update `control.md` (**Development row ONLY**):
    - Set `Development` status to `done`
    - Add note in Decision Log: `Development complete — <ISO date>`
+   - ⛔ Do NOT touch the `Plan Approved` row — it is human-managed and must remain unchanged
 
 3. Run a final lint check:
 ```bash

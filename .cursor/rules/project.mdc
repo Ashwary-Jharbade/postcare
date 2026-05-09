@@ -77,4 +77,4 @@ ai-dev/
 4. Stash messages must follow: `[AI-PIPELINE] <ticket> — auto-stash before branch switch`
 5. Never force-push to `develop` or `main`
 6. Always pull latest `develop` before creating a feature branch
-7. Branch naming: `feature/<ticket-number>-<short-slug>`
+7. Branch naming: **exactly** `<ticket-number>` (e.g. `POS-1` — no `feature/` prefix or slug)

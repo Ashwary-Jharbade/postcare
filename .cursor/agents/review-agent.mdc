@@ -230,7 +230,7 @@ Update `ai-dev/<ticket-number>/control.md`:
 - Add Decision Log entry with verdict and date
 
 If verdict is `approved` or `approved-with-comments`, also print:
-> "✅ Ready to raise PR from `feature/<ticket-number>-*` → `develop`
+> "✅ Ready to raise PR from `<ticket-number>` → `develop`
 > Remember to: squash commits if needed, update PR description with plan.md summary"
 
 ---
